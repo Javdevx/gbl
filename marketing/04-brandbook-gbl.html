@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Green Baker Lodge — Brand Book</title>
+<style>
+  :root{
+    --baker:#1A9A9D; --baker-bright:#2DBEC2; --baker-deep:#0E5B5E;
+    --bosque:#233D2C; --bosque-mid:#3A5A40;
+    --piedra:#6B6256; --cobre:#B86E4B;
+    --hueso:#F3EFE6; --tinta:#16201A;
+    --linea:rgba(243,239,230,.16);
+    --mono:"SF Mono",ui-monospace,"Roboto Mono",Menlo,Consolas,monospace;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --sans:"Inter","Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--tinta);color:var(--hueso);font-family:var(--serif);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:900px;margin:0 auto;padding:0 28px}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.28em;text-transform:uppercase;color:var(--baker);font-weight:600}
+  h1,h2,h3,h4{font-family:var(--sans);font-weight:800;letter-spacing:-.02em;line-height:1.05}
+
+  /* cover */
+  .cover{min-height:92vh;display:flex;flex-direction:column;justify-content:center;padding:90px 0;
+    background:radial-gradient(130% 90% at 80% 10%,rgba(45,190,194,.22),transparent 55%),radial-gradient(90% 80% at 10% 100%,rgba(35,61,44,.55),transparent 60%),var(--tinta);
+    border-bottom:1px solid var(--linea)}
+  .cover .eyebrow{margin-bottom:28px}
+  .cover h1{font-size:clamp(2.8rem,8vw,5.6rem);margin-bottom:10px}
+  .cover h1 .light{font-weight:300;color:var(--baker-bright);display:block}
+  .cover .sub{font-size:clamp(1.1rem,2vw,1.35rem);color:rgba(243,239,230,.72);max-width:620px;margin-top:30px;font-style:italic}
+  .cover .toc{margin-top:54px;display:flex;flex-wrap:wrap;gap:8px 28px;font-family:var(--mono);font-size:.78rem;letter-spacing:.06em;color:rgba(243,239,230,.6)}
+  .cover .toc a{color:rgba(243,239,230,.6);text-decoration:none;border-bottom:1px solid transparent;transition:.2s}
+  .cover .toc a:hover{color:var(--baker-bright);border-color:var(--baker-bright)}
+
+  section{padding:64px 0;border-bottom:1px solid var(--linea)}
+  .sec-head{display:flex;align-items:baseline;gap:18px;margin-bottom:30px}
+  .sec-num{font-family:var(--mono);font-size:.8rem;color:var(--baker);font-weight:600;letter-spacing:.1em;border:1px solid var(--baker);border-radius:2px;padding:3px 9px;flex:none}
+  h2{font-size:clamp(1.6rem,3.6vw,2.3rem)}
+  h3{font-size:1.08rem;color:var(--baker);margin:28px 0 10px;font-family:var(--sans)}
+  p{margin-bottom:15px;font-size:1.04rem;color:rgba(243,239,230,.86)}
+  p.lead{font-size:1.22rem;color:var(--hueso);line-height:1.5}
+  strong{color:var(--hueso);font-weight:700}
+  em{color:var(--baker);font-style:italic}
+
+  .card{background:linear-gradient(135deg,rgba(45,190,194,.1),rgba(35,61,44,.18));border:1px solid var(--linea);border-radius:8px;padding:30px 30px}
+  .card .lbl{font-family:var(--mono);font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:var(--baker-bright);margin-bottom:12px}
+  .card p{font-size:1.18rem;color:var(--hueso);margin:0;line-height:1.5}
+
+  .hier{display:grid;gap:12px;margin-top:6px}
+  .layer{display:flex;gap:16px;align-items:flex-start;padding:16px 18px;border:1px solid var(--linea);border-radius:5px;background:rgba(243,239,230,.02)}
+  .layer .rank{font-family:var(--sans);font-weight:800;font-size:1.3rem;flex:none;width:26px}
+  .layer.l1{border-left:3px solid var(--baker-bright)} .layer.l1 .rank{color:var(--baker-bright)}
+  .layer.l2{border-left:3px solid var(--bosque-mid)} .layer.l2 .rank{color:var(--bosque-mid)}
+  .layer.l3{border-left:3px solid var(--piedra)} .layer.l3 .rank{color:var(--piedra)}
+  .layer h4{font-family:var(--sans);font-size:.98rem;margin-bottom:2px} .layer p{font-size:.92rem;margin:0;color:rgba(243,239,230,.66)}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}
+  @media(max-width:640px){.two{grid-template-columns:1fr}}
+  .mini{border:1px solid var(--linea);border-radius:6px;padding:20px;background:rgba(243,239,230,.02)}
+  .mini.a{border-top:3px solid var(--baker)} .mini.b{border-top:3px solid var(--cobre)}
+  .mini h4{font-family:var(--sans);font-size:1.05rem;margin-bottom:8px}
+  .mini p{font-size:.92rem;margin:0;color:rgba(243,239,230,.72)}
+
+  .pal{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;background:var(--linea);border:1px solid var(--linea);border-radius:8px;overflow:hidden;margin-top:6px}
+  .sw .chip{height:80px} .sw .meta{padding:12px 14px;background:var(--tinta)}
+  .sw .nm{font-family:var(--sans);font-weight:700;font-size:.86rem;margin-bottom:2px}
+  .sw .hex{font-family:var(--mono);font-size:.7rem;color:rgba(243,239,230,.55)}
+  .sw .role{font-size:.74rem;color:rgba(243,239,230,.5);margin-top:5px;line-height:1.3}
+
+  .voice{border:1px solid var(--linea);border-radius:6px;overflow:hidden;margin-top:6px}
+  .vrow{display:grid;grid-template-columns:130px 1fr;border-bottom:1px solid var(--linea)}
+  .vrow:last-child{border-bottom:none}
+  @media(max-width:600px){.vrow{grid-template-columns:1fr}}
+  .vrow .vlbl{padding:16px 18px;background:rgba(243,239,230,.03);font-family:var(--sans);font-weight:700;font-size:.9rem;display:flex;align-items:center}
+  .vrow.base .vlbl{color:var(--baker)} .vrow.car .vlbl{color:var(--cobre)} .vrow.never .vlbl{color:var(--piedra)}
+  .vrow .vbody{padding:16px 20px}
+  .vrow .vbody p{font-size:.92rem;margin-bottom:6px}
+  .vrow .ex{font-style:italic;color:var(--hueso);font-size:.98rem;border-left:2px solid var(--linea);padding-left:12px}
+
+  .ex-block{border:1px solid var(--linea);border-radius:6px;margin-top:12px;overflow:hidden}
+  .ex-ctx{background:rgba(26,154,157,.08);padding:10px 18px;font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--baker)}
+  .ex-pair{display:grid;grid-template-columns:1fr 1fr}
+  @media(max-width:600px){.ex-pair{grid-template-columns:1fr}}
+  .ex-pair .col{padding:18px}
+  .ex-pair .col:first-child{border-right:1px solid var(--linea)}
+  @media(max-width:600px){.ex-pair .col:first-child{border-right:none;border-bottom:1px solid var(--linea)}}
+  .ex-pair .lng{font-family:var(--mono);font-size:.64rem;letter-spacing:.18em;color:rgba(243,239,230,.45);margin-bottom:10px}
+  .ex-pair p{font-size:1rem;margin:0;color:var(--hueso);line-height:1.45}
+
+  .lex{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .lword{border:1px solid var(--linea);border-radius:4px;padding:7px 13px;font-family:var(--sans);font-size:.88rem;color:rgba(243,239,230,.85)}
+  .lword.star{border-color:var(--cobre);background:rgba(184,110,75,.1);color:var(--hueso);font-weight:700}
+  .avoid .lword{border-color:rgba(184,110,75,.3);color:rgba(243,239,230,.5);text-decoration:line-through;text-decoration-color:var(--cobre)}
+
+  .shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--linea);border:1px solid var(--linea);border-radius:8px;overflow:hidden;margin-top:6px}
+  .shot{background:var(--tinta);padding:18px 16px}
+  .shot .n{font-family:var(--mono);font-size:.66rem;color:var(--cobre);letter-spacing:.1em;margin-bottom:6px}
+  .shot .h{font-family:var(--sans);font-weight:700;font-size:.94rem;margin-bottom:5px}
+  .shot p{font-size:.82rem;margin:0;color:rgba(243,239,230,.66)}
+
+  .do-dont{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+  @media(max-width:600px){.do-dont{grid-template-columns:1fr}}
+  .dd{border-radius:8px;padding:20px}
+  .dd.do{border:1px solid rgba(26,154,157,.4);background:rgba(26,154,157,.06)}
+  .dd.dont{border:1px solid rgba(184,110,75,.35);background:rgba(184,110,75,.06)}
+  .dd .tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:10px;display:block}
+  .dd.do .tag{color:var(--baker)} .dd.dont .tag{color:var(--cobre)}
+  .dd ul{list-style:none}
+  .dd li{font-size:.9rem;padding:4px 0 4px 18px;position:relative;color:rgba(243,239,230,.82)}
+  .dd.do li:before{content:"✓";position:absolute;left:0;color:var(--baker)}
+  .dd.dont li:before{content:"✕";position:absolute;left:0;color:var(--cobre)}
+
+  .todo{background:rgba(184,110,75,.1);border:1px dashed var(--cobre);border-radius:5px;padding:15px 18px;margin:20px 0;font-size:.9rem;color:var(--hueso)}
+  .todo b{color:var(--cobre);font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;display:block;margin-bottom:5px}
+  .note{font-size:.84rem;color:rgba(243,239,230,.5);font-style:italic;margin-top:8px}
+  footer{padding:54px 0 70px;text-align:center;color:rgba(243,239,230,.4);font-family:var(--mono);font-size:.74rem;letter-spacing:.08em}
+  ::selection{background:var(--cobre);color:var(--tinta)}
+</style>
+</head>
+<body>
+
+<header class="cover">
+  <div class="wrap">
+    <div class="eyebrow">Sistema de Marca · Documento 04 · Guía maestra</div>
+    <h1>Brand Book<span class="light">Green Baker Lodge</span></h1>
+    <p class="sub">La guía de referencia para todos los que construyen la marca: equipo, diseñadora, fotógrafo, agencias, desarrollo web. Una sola fuente de verdad.</p>
+    <nav class="toc">
+      <a href="#esencia">01 Esencia</a>
+      <a href="#jerarquia">02 Jerarquía</a>
+      <a href="#alma">03 Alma</a>
+      <a href="#publico">04 Público</a>
+      <a href="#prueba">05 Prueba</a>
+      <a href="#voz">06 Voz</a>
+      <a href="#lexico">07 Léxico</a>
+      <a href="#paleta">08 Paleta</a>
+      <a href="#tipo">09 Tipografía</a>
+      <a href="#logo">10 Logo</a>
+      <a href="#foto">11 Fotografía</a>
+      <a href="#reglas">12 Reglas de oro</a>
+    </nav>
+  </div>
+</header>
+
+<section id="esencia">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">01</span><h2>La esencia, en una frase</h2></div>
+    <div class="card"><div class="lbl">Posicionamiento</div><p>El mejor acceso al río Baker —una de las grandes aguas de pesca con mosca del mundo— vivido con hospitalidad patagónica genuina, en grupos pequeños y bajo una ética estricta de devolución.</p></div>
+    <p style="margin-top:22px">GBL no es un lodge de lujo que tiene pesca. Es <strong>un templo de pesca seria donde el lujo es el cómo, no el titular</strong>. Esa distinción ordena cada decisión de marca.</p>
+  </div>
+</section>
+
+<section id="jerarquia">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">02</span><h2>La jerarquía que manda</h2></div>
+    <p>Pesca, experiencia y exclusividad conviven, pero en este orden estricto. Cuando haya que decidir qué destacar, gana el número más bajo.</p>
+    <div class="hier">
+      <div class="layer l1"><div class="rank">1</div><div><h4>Pesca — el centro</h4><p>El héroe es el agua y la trucha. El río Baker y sus aguas hermanas son el producto.</p></div></div>
+      <div class="layer l2"><div class="rank">2</div><div><h4>Experiencia — el cómo</h4><p>Hospitalidad patagónica real: la mesa con fuego, el vino, las cabañas, el asado, el hot tub.</p></div></div>
+      <div class="layer l3"><div class="rank">3</div><div><h4>Exclusividad — la condición</h4><p>Pocos huéspedes, pocas varas, baja presión. No se grita; se demuestra con números pequeños.</p></div></div>
+    </div>
+    <p class="note">El lujo de resort cinco estrellas queda <em>fuera</em> de la jerarquía a propósito: así la marca nunca promete lo que el lugar no entrega. Las cabañas de madera son refugio de pescador, honesto y cálido — exactamente lo correcto.</p>
+  </div>
+</section>
+
+<section id="alma">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">03</span><h2>El alma: oficio ganado</h2></div>
+    <p class="lead">GBL no heredó un lugar perfecto. Lo levantó.</p>
+    <p>El carácter de la marca es <strong>maestría que se gana, no que se compra</strong> — el mismo carácter del Baker, que es <em>indómito</em> y no se entrega fácil. Esta historia se cuenta con orgullo del oficio, no con el inventario de las heridas: el huésped percibe el resultado (un equipo que sabe leer estas aguas), no los tropiezos del camino.</p>
+    <div class="card" style="background:linear-gradient(135deg,rgba(184,110,75,.12),rgba(35,61,44,.2))"><p style="font-style:italic">"Hoy sabemos leer estas aguas porque nos costó aprenderlas."</p></div>
+  </div>
+</section>
+
+<section id="publico">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">04</span><h2>A quién le hablamos</h2></div>
+    <div class="two">
+      <div class="mini a"><h4>El pescador serio — el centro</h4><p>Internacional (EE.UU., Europa) y chileno de alto poder adquisitivo. Conoce el oficio, valora la autenticidad y la conservación, detecta el marketing inflado al instante. Paga desde USD 3.200 / CLP 1.500.000 la estadía base.</p></div>
+      <div class="mini b"><h4>Su acompañante — el que habilita el viaje</h4><p>Viaja con el pescador. El programa no-pescadores hace que el viaje sea decisión de a dos. Importante en el negocio, secundario en la narrativa.</p></div>
+    </div>
+    <h3>Cómo llegan hoy</h3>
+    <p>Agencias especializadas en pesca con mosca · la red y el endoso Orvis · Instagram · boca a boca. La marca debe servir a esos cuatro canales.</p>
+  </div>
+</section>
+
+<section id="prueba">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">05</span><h2>La prueba</h2></div>
+    <p>El lujo se prueba con lo específico y verificable, nunca con superlativos:</p>
+    <div class="lex">
+      <span class="lword star">Orvis Endorsed Lodge</span>
+      <span class="lword">100% catch &amp; release</span>
+      <span class="lword">12 varas máx./día</span>
+      <span class="lword">~24 huéspedes</span>
+      <span class="lword">6+ aguas distintas</span>
+      <span class="lword">2–5 guías profesionales</span>
+      <span class="lword">5 cataraft de pesca</span>
+      <span class="lword">baja presión de pesca</span>
+    </div>
+    <p class="note" style="margin-top:14px">El endoso Orvis es prueba externa de primer nivel: usar con prominencia. Catch &amp; release y baja presión son, además, valores de conservación que la comunidad respeta.</p>
+  </div>
+</section>
+
+<section id="voz">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Voz</h2></div>
+    <p>Dos arquetipos al 50/50: el <strong>Sabio</strong> (maestría, lee el río con precisión) y el <strong>Explorador</strong> (lo remoto, la frontera virgen). Una voz base cálida con un filo indómito de uso medido.</p>
+    <div class="voice">
+      <div class="vrow base"><div class="vlbl">Voz base</div><div class="vbody"><p>Cálida y narrativa. El 80% de lo que GBL escribe.</p><div class="ex">"Cada mañana el guía mira el agua antes que el reloj. El Baker decide el plan; nosotros solo sabemos leerlo."</div></div></div>
+      <div class="vrow car"><div class="vlbl">Voz de carácter</div><div class="vbody"><p>Cruda y directa. Frases cortas. Un golpe, no un martilleo.</p><div class="ex">"El Baker no se entrega fácil. Por eso vale la pena."</div></div></div>
+      <div class="vrow never"><div class="vlbl">Nunca</div><div class="vbody"><p>Ni técnica fría que excluye, ni superlativos vacíos que inflan.</p><div class="ex" style="color:rgba(243,239,230,.4)">✕ "Una experiencia única e inolvidable de clase mundial en un paraíso incomparable."</div></div></div>
+    </div>
+
+    <h3>Bilingüe real: se escribe en cada idioma, no se traduce</h3>
+    <div class="ex-block">
+      <div class="ex-ctx">Titular · Voz de carácter</div>
+      <div class="ex-pair">
+        <div class="col"><div class="lng">ESPAÑOL</div><p>El río más indómito de Chile. Y sabemos leerlo.</p></div>
+        <div class="col"><div class="lng">ENGLISH</div><p>Chile's most untamed river. And we know how to read it.</p></div>
+      </div>
+    </div>
+    <div class="ex-block">
+      <div class="ex-ctx">Invitación · Voz base cálida</div>
+      <div class="ex-pair">
+        <div class="col"><div class="lng">ESPAÑOL</div><p>Dinos cuándo. Del dónde —y de todo lo demás— nos encargamos nosotros.</p></div>
+        <div class="col"><div class="lng">ENGLISH</div><p>Tell us when. We'll take care of the where — and everything in between.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="lexico">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">07</span><h2>Léxico</h2></div>
+    <h3>Palabras que GBL usa</h3>
+    <div class="lex">
+      <span class="lword star">indómito / untamed</span>
+      <span class="lword">leer el río</span><span class="lword">oficio</span>
+      <span class="lword">la trucha de tu vida</span><span class="lword">devolución</span>
+      <span class="lword">jornada</span><span class="lword">frontera</span>
+      <span class="lword">aguas</span><span class="lword">primera división</span><span class="lword">sin prisa</span>
+    </div>
+    <h3 style="color:var(--cobre)">Palabras que GBL evita</h3>
+    <div class="lex avoid">
+      <span class="lword">increíble</span><span class="lword">único</span><span class="lword">inolvidable</span>
+      <span class="lword">paraíso</span><span class="lword">de ensueño</span>
+      <span class="lword">de clase mundial</span><span class="lword">lujo</span><span class="lword">exclusivo (dicho)</span>
+    </div>
+    <p class="note">La exclusividad se demuestra con números (12 varas, 24 huéspedes), nunca se dice. "De clase mundial" se evita como adjetivo autoproclamado; el hecho se muestra con datos.</p>
+  </div>
+</section>
+
+<section id="paleta">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">08</span><h2>Paleta</h2></div>
+    <div class="card" style="margin-bottom:20px"><div class="lbl">Tesis cromática</div><p>El verde bosque nos hace pertenecer al rubro; el <strong>turquesa del Baker</strong> nos hace inconfundibles. Casi ningún lodge puede usar este color.</p></div>
+    <div class="pal">
+      <div class="sw"><div class="chip" style="background:#2DBEC2"></div><div class="meta"><div class="nm">Turquesa Baker</div><div class="hex">#2DBEC2</div><div class="role">Color firma. Protagonista.</div></div></div>
+      <div class="sw"><div class="chip" style="background:#0E5B5E"></div><div class="meta"><div class="nm">Baker Profundo</div><div class="hex">#0E5B5E</div><div class="role">Sombra del agua.</div></div></div>
+      <div class="sw"><div class="chip" style="background:#233D2C"></div><div class="meta"><div class="nm">Verde Lenga</div><div class="hex">#233D2C</div><div class="role">El bosque. Base.</div></div></div>
+      <div class="sw"><div class="chip" style="background:#16201A"></div><div class="meta"><div class="nm">Tinta Bosque</div><div class="hex">#16201A</div><div class="role">Texto, fondos.</div></div></div>
+      <div class="sw"><div class="chip" style="background:#B86E4B"></div><div class="meta"><div class="nm">Cobre</div><div class="hex">#B86E4B</div><div class="role">Acento cálido.</div></div></div>
+      <div class="sw"><div class="chip" style="background:#6B6256"></div><div class="meta"><div class="nm">Piedra</div><div class="hex">#6B6256</div><div class="role">Neutro cálido.</div></div></div>
+      <div class="sw"><div class="chip" style="background:#F3EFE6"></div><div class="meta"><div class="nm">Hueso</div><div class="hex">#F3EFE6</div><div class="role">Texto claro, respiro.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="tipo">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">09</span><h2>Tipografía</h2></div>
+    <p>Tres roles. La sans-display aporta carácter contemporáneo e indómito; la serif de cuerpo, la calidez narrativa. La combinación evita el "otro lodge moderno" que usa sans en todo.</p>
+    <div class="two" style="grid-template-columns:1fr;gap:12px">
+      <div class="mini"><h4 style="font-size:1.6rem;letter-spacing:-.03em">DISPLAY — Sans geométrica/grotesca, peso alto</h4><p>Titulares. Carácter, no decoración. Ej: Söhne, Founders Grotesk, Neue Haas.</p></div>
+      <div class="mini"><h4 style="font-family:var(--serif);font-weight:400;font-size:1.4rem;letter-spacing:0">Cuerpo — Serif cálida y legible</h4><p>Textos largos, registro narrativo y premium. Ej: Tiempos, Lyon, Freight.</p></div>
+      <div class="mini"><h4 style="font-family:var(--mono);font-size:1rem;letter-spacing:.04em;color:var(--baker)">UTILITARIA — 12 VARAS · 100% CATCH &amp; RELEASE</h4><p>Datos, fichas, etiquetas. El lado preciso del Sabio. Una mono geométrica.</p></div>
+    </div>
+    <p class="note">Familias exactas: a confirmar con la diseñadora. Lo que no cambia es el carácter de cada rol.</p>
+  </div>
+</section>
+
+<section id="logo">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">10</span><h2>Logo</h2></div>
+    <p>Dirección: <strong>partir de la propuesta de la diseñadora</strong> (trucha en marco con montañas) — es la base correcta. El logo del folleto no avanza: confuso a tamaño pequeño y más "club de pesca" que lodge premium.</p>
+    <div class="todo"><b>Brief para la diseñadora</b>1) Versión con el turquesa Baker #2DBEC2 como color-firma, no el teal apagado. 2) Trucha con gesto más vivo/dinámico que evoque "indómito". 3) Set completo: full color, monocromo, negativo, horizontal, isotipo solo, favicon. 4) Entregar en SVG.</div>
+  </div>
+</section>
+
+<section id="foto">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">11</span><h2>Fotografía — el 70% de la venta</h2></div>
+    <p class="lead">La marca se construye alrededor de las imágenes. Esta es la sección más importante del Brand Book.</p>
+    <h3>Tratamiento</h3>
+    <p>Luz natural del sur siempre — horas doradas y la luz plana del nublado patagónico (un activo, no un problema). Color real, no saturado: el turquesa del Baker ya es irreal de por sí. Negros profundos, sensación cinematográfica. Nada de HDR turístico ni filtros.</p>
+    <h3>Las 8 tomas obligatorias</h3>
+    <div class="shots">
+      <div class="shot"><div class="n">01 · HÉROE</div><div class="h">El agua sola</div><p>El turquesa en plano amplio, sin gente. El color protagonista.</p></div>
+      <div class="shot"><div class="n">02 · OFICIO</div><div class="h">El guía leyendo el río</div><p>Manos, mirada, gesto. El Sabio hecho imagen.</p></div>
+      <div class="shot"><div class="n">03 · TENSIÓN</div><div class="h">La línea, el momento</div><p>El cast, la caña doblada. Movimiento, no pose.</p></div>
+      <div class="shot"><div class="n">04 · LA TRUCHA</div><div class="h">Devolución, no trofeo</div><p>El pez en el agua, a punto de volver. Vivo y bello.</p></div>
+      <div class="shot"><div class="n">05 · FRONTERA</div><div class="h">La escala del lugar</div><p>El pescador pequeño en el paisaje enorme. El Explorador.</p></div>
+      <div class="shot"><div class="n">06 · LA MESA</div><div class="h">Fuego y hospitalidad</div><p>Cordero al palo, vino, sobremesa. La calidez.</p></div>
+      <div class="shot"><div class="n">07 · REFUGIO</div><div class="h">La cabaña honesta</div><p>Madera, luz de ventana, hot tub al atardecer.</p></div>
+      <div class="shot"><div class="n">08 · TEXTURA</div><div class="h">El detalle del oficio</div><p>Moscas, líder, waders. Macro. La materia del fly-fishing.</p></div>
+    </div>
+    <div class="do-dont">
+      <div class="dd do"><span class="tag">La cámara de GBL</span><ul>
+        <li>Devuelve la trucha al agua, viva y bella</li>
+        <li>Luz natural, incluido el nublado</li>
+        <li>Gente real pescando, no posando</li>
+        <li>El turquesa real, sin saturar</li>
+        <li>Espacio, silencio, escala</li>
+      </ul></div>
+      <div class="dd dont"><span class="tag">Nunca</span><ul>
+        <li>Trucha muerta colgando como trofeo</li>
+        <li>Sonrisas forzadas a cámara estilo brochure</li>
+        <li>Cielos saturados, HDR, filtros</li>
+        <li>Grupos grandes (contradice exclusividad)</li>
+        <li>Lujo impostado / stock genérico</li>
+      </ul></div>
+    </div>
+    <div class="todo"><b>Acción urgente</b>Entregar esta sección al fotógrafo como contrato visual antes de disparar. Producir en dos momentos de temporada (inicio oct/nov; otoño con cobre). Cobertura de las 8 tomas. Entrega horizontal + vertical. Derechos de uso amplios. Primera inversión a priorizar.</div>
+  </div>
+</section>
+
+<section id="reglas">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">12</span><h2>Las reglas de oro</h2></div>
+    <p>Si un proveedor solo lee una página, que sea esta.</p>
+    <div class="do-dont">
+      <div class="dd do"><span class="tag">Siempre</span><ul>
+        <li>Pesca al centro; lujo es el cómo, no el titular</li>
+        <li>Específico y verificable sobre genérico</li>
+        <li>El turquesa Baker como color firma</li>
+        <li>"Indómito / untamed" como palabra ancla, con disciplina</li>
+        <li>La trucha siempre vuelve al agua</li>
+        <li>Bilingüe escrito en cada idioma, no traducido</li>
+        <li>Mostrar la exclusividad con números pequeños</li>
+      </ul></div>
+      <div class="dd dont"><span class="tag">Jamás</span><ul>
+        <li>Prometer lujo cinco estrellas que el lodge no tiene</li>
+        <li>Inflar tamaños, especies o cifras de captura</li>
+        <li>Superlativos vacíos (increíble, único, inolvidable)</li>
+        <li>Reclamar acceso exclusivo a aguas que no lo son</li>
+        <li>Decir "somos exclusivos" en vez de demostrarlo</li>
+        <li>Fotos de trucha como trofeo muerto</li>
+        <li>Lenguaje corporativo en valores de conservación</li>
+      </ul></div>
+    </div>
+    <div class="todo"><b>Principio rector para el equipo</b>La marca y la operación deben caminar juntas. La marca puede ir medio paso adelante de la realidad para tirar de ella; nunca tres pasos inventando. La voz de marca y la voz del guía en el bote deben ser la misma persona.</div>
+  </div>
+</section>
+
+<footer>
+  GREEN BAKER LODGE · BRAND BOOK v1 · DOCUMENTO DE TRABAJO INTERNO<br>
+  Consolida: 01 Fundamentos · 02 Personalidad y Voz · 03 Identidad Visual
+</footer>
+
+</body>
+</html>

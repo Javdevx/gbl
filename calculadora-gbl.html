@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Cotizaciones · Green Baker Lodge</title>
+<style>
+  :root{
+    --abyss:#001219;
+    --deep:#022f3a;
+    --glass:rgba(255,255,255,0.04);
+    --glass-border:rgba(0,242,255,0.18);
+    --cyan:#00F2FF;
+    --cyan-dim:rgba(0,242,255,0.55);
+    --ice:#cfe9ee;
+    --muted:#6f8f97;
+    --white:#eaf7f9;
+    --warn:#ffd166;
+    --shadow:0 8px 40px rgba(0,0,0,0.45);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Inter','Segoe UI',system-ui,sans-serif;
+    background:
+      radial-gradient(900px 500px at 80% -10%, rgba(0,242,255,0.08), transparent 60%),
+      radial-gradient(700px 600px at 0% 100%, rgba(2,47,58,0.6), transparent 55%),
+      var(--abyss);
+    color:var(--white);
+    min-height:100vh;
+    padding:32px 18px 60px;
+    line-height:1.5;
+  }
+  .wrap{max-width:980px;margin:0 auto}
+  header{margin-bottom:28px}
+  .eyebrow{
+    font-size:11px;letter-spacing:.32em;text-transform:uppercase;
+    color:var(--cyan-dim);font-weight:600;margin-bottom:10px;
+  }
+  h1{
+    font-size:clamp(26px,4vw,38px);font-weight:300;letter-spacing:-.01em;
+    color:var(--white);
+  }
+  h1 b{font-weight:700;color:var(--cyan)}
+  .sub{color:var(--muted);font-size:14px;margin-top:8px;max-width:560px}
+
+  .grid{display:grid;grid-template-columns:1.35fr 1fr;gap:20px;margin-top:28px}
+  @media(max-width:780px){.grid{grid-template-columns:1fr}}
+
+  .panel{
+    background:var(--glass);
+    border:1px solid var(--glass-border);
+    border-radius:16px;
+    backdrop-filter:blur(12px);
+    padding:22px;
+    box-shadow:var(--shadow);
+  }
+  .panel h2{
+    font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--cyan-dim);font-weight:600;margin-bottom:18px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .panel h2::before{
+    content:"";width:6px;height:6px;border-radius:50%;
+    background:var(--cyan);box-shadow:0 0 10px var(--cyan);
+  }
+
+  label{display:block;font-size:12px;color:var(--ice);margin-bottom:7px;font-weight:500}
+  .field{margin-bottom:18px}
+
+  .seg{display:flex;gap:6px;background:rgba(0,0,0,0.25);padding:5px;border-radius:11px;border:1px solid rgba(255,255,255,0.05)}
+  .seg button{
+    flex:1;padding:10px 8px;border:none;border-radius:8px;cursor:pointer;
+    background:transparent;color:var(--muted);font-size:13px;font-weight:600;
+    font-family:inherit;transition:.18s;
+  }
+  .seg button.on{background:var(--cyan);color:var(--abyss);box-shadow:0 0 18px rgba(0,242,255,.35)}
+
+  input[type=number]{
+    width:100%;padding:11px 13px;border-radius:9px;
+    background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);
+    color:var(--white);font-size:15px;font-family:inherit;
+  }
+  input[type=number]:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,242,255,.12)}
+
+  .pax-row{
+    display:grid;grid-template-columns:1fr 64px;gap:10px;align-items:center;
+    padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.05);
+  }
+  .pax-row:last-of-type{border-bottom:none}
+  .pax-name{font-size:13px;color:var(--ice)}
+  .pax-name small{display:block;color:var(--muted);font-size:11px;margin-top:1px}
+  .stepper{display:flex;align-items:center;gap:0;border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden}
+  .stepper button{
+    width:28px;height:32px;border:none;background:rgba(255,255,255,0.04);
+    color:var(--cyan);font-size:16px;cursor:pointer;font-family:inherit;transition:.15s;
+  }
+  .stepper button:hover{background:rgba(0,242,255,0.14)}
+  .stepper input{width:34px;height:32px;text-align:center;border:none;background:transparent;color:var(--white);font-size:14px;font-family:inherit}
+  .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none}
+
+  .addon{padding:14px 0;border-top:1px solid rgba(255,255,255,0.06);margin-top:6px}
+  .addon-title{font-size:12px;color:var(--ice);margin-bottom:4px;font-weight:600}
+  .addon-note{font-size:11px;color:var(--muted);margin-bottom:12px}
+
+  .check{display:flex;align-items:center;gap:9px;margin-bottom:12px;cursor:pointer}
+  .check input{width:16px;height:16px;accent-color:var(--cyan)}
+  .check span{font-size:13px;color:var(--ice)}
+
+  /* Results */
+  .result h2::before{background:var(--warn);box-shadow:0 0 10px var(--warn)}
+  .line{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.05)}
+  .line .lbl{color:var(--muted)}
+  .line .val{color:var(--ice);font-variant-numeric:tabular-nums;font-weight:500}
+  .line.discount .val{color:var(--cyan)}
+  .total{
+    margin-top:18px;padding:18px;border-radius:13px;
+    background:linear-gradient(135deg, rgba(0,242,255,0.12), rgba(0,242,255,0.03));
+    border:1px solid var(--glass-border);
+  }
+  .total .tlbl{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--cyan-dim);font-weight:600}
+  .total .tval{font-size:32px;font-weight:700;color:var(--white);margin-top:6px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .total .tcur{font-size:15px;color:var(--cyan);font-weight:600;margin-left:4px}
+  .pay-split{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  .pay-box{background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px}
+  .pay-box .pl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .pay-box .pv{font-size:17px;font-weight:600;color:var(--ice);margin-top:4px;font-variant-numeric:tabular-nums}
+
+  .disclaimer{font-size:11px;color:var(--muted);margin-top:16px;line-height:1.6}
+  .copy-btn{
+    width:100%;margin-top:16px;padding:13px;border:none;border-radius:10px;cursor:pointer;
+    background:var(--cyan);color:var(--abyss);font-weight:700;font-size:14px;font-family:inherit;
+    transition:.18s;letter-spacing:.02em;
+  }
+  .copy-btn:hover{box-shadow:0 0 24px rgba(0,242,255,.4)}
+  .copy-btn.done{background:var(--ice)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Green Baker Lodge · Patagonia</div>
+    <h1>Calculadora de <b>Cotizaciones</b></h1>
+    <p class="sub">Ingresa el grupo y las noches para obtener el valor estimado al instante. No reemplaza la cotización formal — sirve para responder rápido antes de cargar el grupo en Airtable.</p>
+  </header>
+
+  <div class="grid">
+    <!-- INPUT -->
+    <div class="panel">
+      <h2>Configuración del grupo</h2>
+
+      <div class="field">
+        <label>Mercado</label>
+        <div class="seg" id="market">
+          <button class="on" data-mkt="nac">Nacional · CLP</button>
+          <button data-mkt="int">Internacional · USD</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Número de noches</label>
+        <input type="number" id="nights" min="1" max="14" value="7">
+      </div>
+
+      <div class="field">
+        <label>Participantes por tipo</label>
+        <div class="pax-row">
+          <div class="pax-name">Full <small>pieza doble · pescador</small></div>
+          <div class="stepper"><button data-step="full" data-d="-1">–</button><input type="number" id="full" value="2" min="0"><button data-step="full" data-d="1">+</button></div>
+        </div>
+        <div class="pax-row">
+          <div class="pax-name">Single <small>pieza single · ×1,4</small></div>
+          <div class="stepper"><button data-step="single" data-d="-1">–</button><input type="number" id="single" value="0" min="0"><button data-step="single" data-d="1">+</button></div>
+        </div>
+        <div class="pax-row">
+          <div class="pax-name">Non Angler <small>acompañante · no pesca</small></div>
+          <div class="stepper"><button data-step="nonangler" data-d="-1">–</button><input type="number" id="nonangler" value="0" min="0"><button data-step="nonangler" data-d="1">+</button></div>
+        </div>
+      </div>
+
+      <div class="addon">
+        <div class="addon-title">Pesca por día (add-on)</div>
+        <div class="addon-note">Jornadas sueltas. Siempre en CLP, mismo valor nacional e internacional.</div>
+        <div class="pax-row">
+          <div class="pax-name">Medio día <small>$350.000 c/u</small></div>
+          <div class="stepper"><button data-step="half" data-d="-1">–</button><input type="number" id="half" value="0" min="0"><button data-step="half" data-d="1">+</button></div>
+        </div>
+        <div class="pax-row">
+          <div class="pax-name">Día completo <small>$500.000 c/u</small></div>
+          <div class="stepper"><button data-step="fullday" data-d="-1">–</button><input type="number" id="fullday" value="0" min="0"><button data-step="fullday" data-d="1">+</button></div>
+        </div>
+      </div>
+
+      <div class="addon">
+        <div class="addon-title">Descuentos</div>
+        <label class="check"><input type="checkbox" id="operator"><span>Grupo vía operador (−20%)</span></label>
+        <label class="check"><input type="checkbox" id="sixth"><span>6to huésped gratis (descontar el participante más barato)</span></label>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+          <span style="font-size:13px;color:var(--ice)">Descuento admin</span>
+          <input type="number" id="adminpct" value="0" min="0" max="100" style="width:70px;padding:7px 9px"> <span style="color:var(--muted);font-size:13px">%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- OUTPUT -->
+    <div class="panel result">
+      <h2>Cotización estimada</h2>
+      <div id="breakdown"></div>
+
+      <div class="total">
+        <div class="tlbl">Precio final</div>
+        <div class="tval"><span id="currency">$</span><span id="grandtotal">0</span><span class="tcur" id="curcode">CLP</span></div>
+        <div class="pay-split">
+          <div class="pay-box"><div class="pl">Reserva 50%</div><div class="pv"><span class="cs">$</span><span id="reserva">0</span></div></div>
+          <div class="pay-box"><div class="pl">Saldo 50%</div><div class="pv"><span class="cs">$</span><span id="saldo">0</span></div></div>
+        </div>
+      </div>
+
+      <button class="copy-btn" id="copyBtn">Copiar resumen</button>
+
+      <p class="disclaimer">El traslado (ida + vuelta) se cobra una vez por persona. La pesca por día se suma siempre en CLP. Las cifras nacionales e internacionales no se convierten entre sí. Valor referencial sujeto a confirmación.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const RATES = {
+  nac: { transfer:100000, first:400000, extra:450000, cur:'CLP', sym:'$' },
+  int: { transfer:175,    first:1000,   extra:900,    cur:'USD', sym:'US$' }
+};
+const SINGLE_FACTOR = 1.4;
+const HALF_DAY = 350000;   // CLP
+const FULL_DAY = 500000;   // CLP
+
+let market = 'nac';
+
+const $ = id => document.getElementById(id);
+const intv = id => Math.max(0, parseInt($(id).value)||0);
+
+function fmt(n, sym){
+  return sym + Math.round(n).toLocaleString('es-CL');
+}
+
+function packPrice(type, nights, r){
+  // base = transfer (round trip) + first night + extra nights
+  const base = (r.transfer*2) + r.first + Math.max(0,(nights-1))*r.extra;
+  return type==='single' ? base*SINGLE_FACTOR : base; // full & nonangler same
+}
+
+function calc(){
+  const r = RATES[market];
+  const nights = Math.max(1, intv('nights'));
+  const nFull = intv('full'), nSingle = intv('single'), nNon = intv('nonangler');
+
+  const pFull = packPrice('full', nights, r);
+  const pSingle = packPrice('single', nights, r);
+  const pNon = packPrice('full', nights, r); // same as full
+
+  let subtotal = nFull*pFull + nSingle*pSingle + nNon*pNon;
+
+  // Day fishing add-on (always CLP) — only meaningful for nacional currency context,
+  // but for internacional we show it as a separate CLP note.
+  const nHalf = intv('half'), nFullDay = intv('fullday');
+  const dayFishingCLP = nHalf*HALF_DAY + nFullDay*FULL_DAY;
+
+  // build breakdown
+  const bd = [];
+  if(nFull) bd.push([`Full × ${nFull}`, nFull*pFull]);
+  if(nSingle) bd.push([`Single × ${nSingle}`, nSingle*pSingle]);
+  if(nNon) bd.push([`Non Angler × ${nNon}`, nNon*pNon]);
+
+  // 6th free
+  let sixthDisc = 0;
+  if($('sixth').checked){
+    const totalPax = nFull+nSingle+nNon;
+    if(totalPax>=6){
+      // cheapest participant price present
+      const prices=[];
+      if(nFull) prices.push(pFull);
+      if(nNon) prices.push(pNon);
+      if(nSingle) prices.push(pSingle);
+      sixthDisc = prices.length? Math.min(...prices):0;
+    }
+  }
+
+  let afterSixth = subtotal - sixthDisc;
+
+  // operator
+  let opDisc = 0;
+  if($('operator').checked) opDisc = afterSixth*0.20;
+  let afterOp = afterSixth - opDisc;
+
+  // admin
+  const adminPct = Math.min(100, Math.max(0, parseFloat($('adminpct').value)||0));
+  const adminDisc = afterOp*(adminPct/100);
+  let finalPack = afterOp - adminDisc;
+
+  // render breakdown
+  const wrap = $('breakdown');
+  wrap.innerHTML='';
+  bd.forEach(([l,v])=>{
+    wrap.innerHTML += `<div class="line"><span class="lbl">${l}</span><span class="val">${fmt(v,r.sym)}</span></div>`;
+  });
+  if(sixthDisc) wrap.innerHTML += `<div class="line discount"><span class="lbl">6to huésped gratis</span><span class="val">− ${fmt(sixthDisc,r.sym)}</span></div>`;
+  if(opDisc) wrap.innerHTML += `<div class="line discount"><span class="lbl">Operador −20%</span><span class="val">− ${fmt(opDisc,r.sym)}</span></div>`;
+  if(adminDisc) wrap.innerHTML += `<div class="line discount"><span class="lbl">Descuento admin −${adminPct}%</span><span class="val">− ${fmt(adminDisc,r.sym)}</span></div>`;
+  if(dayFishingCLP) wrap.innerHTML += `<div class="line"><span class="lbl">Pesca por día (CLP)</span><span class="val">$${Math.round(dayFishingCLP).toLocaleString('es-CL')}</span></div>`;
+
+  // Totals
+  $('currency').textContent = r.sym;
+  $('curcode').textContent = r.cur;
+  document.querySelectorAll('.cs').forEach(e=>e.textContent=r.sym);
+
+  // If international, day fishing stays separate (CLP). Pack total in USD.
+  $('grandtotal').textContent = Math.round(finalPack).toLocaleString('es-CL');
+  $('reserva').textContent = Math.round(finalPack*0.5).toLocaleString('es-CL');
+  $('saldo').textContent = Math.round(finalPack*0.5).toLocaleString('es-CL');
+
+  // stash for copy
+  window._summary = buildSummary(r, nights, bd, {sixthDisc,opDisc,adminDisc,adminPct,dayFishingCLP,finalPack});
+}
+
+function buildSummary(r,nights,bd,d){
+  let s = `COTIZACIÓN ESTIMADA · Green Baker Lodge\n`;
+  s += `Mercado: ${market==='nac'?'Nacional (CLP)':'Internacional (USD)'} · ${nights} noches\n\n`;
+  bd.forEach(([l,v])=> s+= `${l}: ${fmt(v,r.sym)}\n`);
+  if(d.sixthDisc) s+= `6to gratis: -${fmt(d.sixthDisc,r.sym)}\n`;
+  if(d.opDisc) s+= `Operador -20%: -${fmt(d.opDisc,r.sym)}\n`;
+  if(d.adminDisc) s+= `Descuento admin -${d.adminPct}%: -${fmt(d.adminDisc,r.sym)}\n`;
+  if(d.dayFishingCLP) s+= `Pesca por día (CLP): $${Math.round(d.dayFishingCLP).toLocaleString('es-CL')}\n`;
+  s += `\nPRECIO FINAL: ${fmt(d.finalPack,r.sym)} ${r.cur}\n`;
+  s += `Reserva 50%: ${fmt(d.finalPack*0.5,r.sym)}\n`;
+  s += `Saldo 50%: ${fmt(d.finalPack*0.5,r.sym)}\n`;
+  if(d.dayFishingCLP) s+= `\n(La pesca por día se cobra aparte en CLP)`;
+  return s;
+}
+
+// events
+$('market').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  market=b.dataset.mkt;
+  $('market').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  calc();
+});
+document.querySelectorAll('.stepper button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const f=$(btn.dataset.step);
+    f.value = Math.max(0,(parseInt(f.value)||0)+parseInt(btn.dataset.d));
+    calc();
+  });
+});
+['nights','full','single','nonangler','half','fullday','operator','sixth','adminpct']
+  .forEach(id=> $(id).addEventListener('input', calc));
+
+$('copyBtn').addEventListener('click', ()=>{
+  navigator.clipboard.writeText(window._summary||'').then(()=>{
+    const b=$('copyBtn'); b.textContent='Copiado ✓'; b.classList.add('done');
+    setTimeout(()=>{b.textContent='Copiar resumen';b.classList.remove('done')},1600);
+  });
+});
+
+calc();
+</script>
+</body>
+</html>
