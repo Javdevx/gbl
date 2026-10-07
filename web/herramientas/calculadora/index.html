@@ -390,19 +390,20 @@ async function genPDF(){
   doc.text(`Emitida: ${today}`, W-M, 21, {align:'right'});
 
   doc.setFont('helvetica','bold'); doc.setFontSize(13);
-  const nameLines=doc.splitTextToSize(s.quoter.trim(),W-2*M);
-  const infoHeight=26+nameLines.length*5+(s.email?5:0);
+  const displayName=s.quoter.trim().toLocaleLowerCase('es-CL').replace(/(^|[\s\-'])\p{L}/gu,letter=>letter.toLocaleUpperCase('es-CL'));
+  const nameLines=doc.splitTextToSize(displayName,W-2*M);
+  const infoHeight=21+nameLines.length*4+(s.email?4:0);
   panel(49,infoHeight);
   y=55;
   doc.setTextColor(...theme.muted); doc.setFontSize(7.5);
-  doc.text('PREPARADA PARA',M,y); y+=6;
+  doc.text('PREPARADA PARA',M,y); y+=5;
   doc.setTextColor(...theme.cream); doc.setFontSize(13);
-  doc.text(nameLines,M,y); y+=nameLines.length*5+2;
+  doc.text(nameLines,M,y); y+=nameLines.length*4+1;
   doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...theme.muted);
-  if(s.email){doc.text(doc.splitTextToSize(s.email,W-2*M),M,y);y+=5;}
-  doc.text(`Programa ${quoteMarket==='nac'?'nacional':'internacional'}`,M,y);y+=5;
+  if(s.email){doc.text(doc.splitTextToSize(s.email,W-2*M),M,y);y+=4;}
+  doc.text(`Programa ${quoteMarket==='nac'?'nacional':'internacional'}`,M,y);y+=4;
   doc.text(`Check-in: ${fmtDate(s.arrival)}  |  Check-out: ${fmtDate(s.departure)}  |  ${s.nights} noches`,M,y);
-  y=49+infoHeight+8;
+  y=49+infoHeight+7;
 
   const programs=[
     [s.nFull,'Programa de pesca · Full','Habitación doble · pescador',s.nFull? s.bd.find(([l])=>l.startsWith('Full'))?.[1]:0],
@@ -413,62 +414,49 @@ async function genPDF(){
   if(s.sixthDisc)discounts.push(['Beneficio: sexto huésped sin cargo',s.sixthDisc]);
   if(s.opDisc)discounts.push(['Descuento operador · 20%',s.opDisc]);
   if(s.adminDisc)discounts.push([`Descuento comercial · ${s.adminPct}%`,s.adminDisc]);
-  panel(y-4,12+programs.length*13+discounts.length*6);
+  panel(y-4,11+programs.length*10+discounts.length*4.5);
   doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...theme.muted);
-  doc.text('DETALLE DEL PROGRAMA',M,y+2);doc.text('VALOR',W-M,y+2,{align:'right'});y+=10;
+  doc.text('DETALLE DEL PROGRAMA',M,y+2);doc.text('VALOR',W-M,y+2,{align:'right'});y+=9;
   programs.forEach(([count,title,description,value])=>{
     doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(...theme.cream);
     doc.text(title,M,y);doc.text(fmt(value,r.sym),W-M,y,{align:'right'});
     doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.muted);
     doc.text(`${description} · ${count} huésped${count>1?'es':''} · ${s.nights} noches`,M,y+4.5);
-    y+=13;
+    y+=10;
   });
   discounts.forEach(([label,value])=>{
     doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...theme.rust);
-    doc.text(label,M,y);doc.text('- '+fmt(value,r.sym),W-M,y,{align:'right'});y+=6;
+    doc.text(label,M,y);doc.text('- '+fmt(value,r.sym),W-M,y,{align:'right'});y+=4.5;
   });
-  y+=5;
+  y+=4;
   doc.setFillColor(...theme.dark);doc.setDrawColor(...theme.rust);
-  doc.roundedRect(M-5,y,W-2*M+10,30,4,4,'FD');
+  doc.roundedRect(M-5,y,W-2*M+10,24,4,4,'FD');
   doc.setTextColor(...theme.cream);doc.setFont('helvetica','bold');doc.setFontSize(9);
-  doc.text('PRECIO FINAL DEL PROGRAMA',W/2,y+8,{align:'center'});
-  doc.setFontSize(26);doc.text(`${fmt(s.finalPack,r.sym)} ${r.cur}`,W/2,y+22,{align:'center'});
+  doc.text('PRECIO FINAL DEL PROGRAMA',W/2,y+6,{align:'center'});
+  doc.setFontSize(22);doc.text(`${fmt(s.finalPack,r.sym)} ${r.cur}`,W/2,y+18,{align:'center'});
   doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.muted);
-  doc.text('*IVA incluido',W/2,y+35,{align:'center'});y+=43;
+  doc.text('*IVA incluido',W/2,y+28,{align:'center'});y+=34;
 
-  panel(y,36);
+  panel(y,28);
   doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(...theme.cream);
-  doc.text('CONDICIONES DE PAGO',M,y+7);
+  doc.text('CONDICIONES DE PAGO',M,y+6);
   const rightX=W/2+5;
-  doc.setDrawColor(...theme.border);doc.line(W/2,y+12,W/2,y+31);
+  doc.setDrawColor(...theme.border);doc.line(W/2,y+10,W/2,y+25);
   const payment=(x,title,timing)=>{
-    doc.setFontSize(9);doc.setTextColor(...theme.rust);doc.text(title,x,y+15);
-    doc.setFontSize(15);doc.setTextColor(...theme.cream);doc.text(`${fmt(s.finalPack*0.5,r.sym)} ${r.cur}`,x,y+23);
-    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.muted);doc.text(timing,x,y+30);
+    doc.setFontSize(9);doc.setTextColor(...theme.rust);doc.text(title,x,y+12);
+    doc.setFontSize(13);doc.setTextColor(...theme.cream);doc.text(`${fmt(s.finalPack*0.5,r.sym)} ${r.cur}`,x,y+19);
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.muted);doc.text(timing,x,y+25);
     doc.setFont('helvetica','bold');
   };
   payment(M,'1. RESERVA · 50%','Al momento de confirmar la reserva.');
   payment(rightX,'2. SALDO · 50%','90 días antes del check-in.');
-  y+=45;
+  y+=34;
 
-  const newPolicyPage=()=>{
-    doc.addPage();doc.setFillColor(...theme.background);doc.rect(0,0,W,297,'F');y=25;
-    doc.setTextColor(...theme.rust);doc.setFont('helvetica','bold');doc.setFontSize(11);
-    doc.text('GREEN BAKER LODGE · CONDICIONES',M,14);
-  };
-  const pol=(title,lines)=>{
-    doc.setFont('helvetica','normal');doc.setFontSize(8.5);
-    const wrapped=lines.map(l=>doc.splitTextToSize(l,W-2*M));
-    const height=8+wrapped.reduce((sum,w)=>sum+w.length*4.2+1.5,0);
-    if(y+height>279)newPolicyPage();
-    doc.setFillColor(...theme.rust);doc.circle(M+1,y-1,0.8,'F');
-    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...theme.cream);
-    doc.text(title,M+5,y);y+=5;
-    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...theme.muted);
-    wrapped.forEach(w=>{doc.text(w,M,y);y+=w.length*4.2+1.5;});y+=3;
-  };
-  // Keep the full policies together on a separate page when they do not fit.
-  if(y+90>279)newPolicyPage();
+  // Smaller policy typography leaves room for signatures on the same A4 page.
+  const policyStart=y;
+  let policyFont=7.2;
+  const policies=[];
+  const pol=(title,lines)=>policies.push([title,lines]);
   pol('POLÍTICA DE RESERVA',['La reserva se hace efectiva una vez se haya abonado el 50% del valor del programa.']);
   pol('POLÍTICA DE CANCELACIÓN',[
     'Más de 90 días antes del check-in: reembolso total, o posibilidad de reagendar la fecha (sujeto a disponibilidad).',
@@ -480,15 +468,36 @@ async function genPDF(){
     'Green Baker Lodge no se hace responsable por cancelaciones o cambios derivados de clima, fuerza mayor, retrasos o cancelaciones de vuelos, o cualquier situación ajena a la operación del lodge.'
   ]);
 
-  const pageCount=doc.getNumberOfPages();
-  for(let page=1;page<=pageCount;page++){
-    doc.setPage(page);
-    doc.setDrawColor(...theme.rust);doc.setLineWidth(0.4);doc.line(M,285,W-M,285);
-    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...theme.muted);
-    doc.text('Green Baker Lodge · Puerto Bertrand, Patagonia · Valor referencial sujeto a confirmación',W/2,290,{align:'center'});
-    doc.text(`${page} / ${pageCount}`,W-M,294,{align:'right'});
-  }
-  doc.setPage(1);
+  const policyLayout=()=>{
+    doc.setFont('helvetica','normal');doc.setFontSize(policyFont);
+    return policies.map(([title,lines])=>[title,lines.map(line=>doc.splitTextToSize(line,W-2*M))]);
+  };
+  let layout=policyLayout();
+  const policyHeight=()=>layout.reduce((height,[,blocks])=>height+6+blocks.reduce((sum,lines)=>sum+lines.length*policyFont*0.43+1,0),0);
+  while(policyStart+policyHeight()>251&&policyFont>5.5){policyFont-=0.2;layout=policyLayout();}
+  layout.forEach(([title,blocks])=>{
+    doc.setFillColor(...theme.rust);doc.circle(M+0.6,y-0.8,0.6,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(policyFont+0.5);doc.setTextColor(...theme.cream);
+    doc.text(title,M+3,y);y+=4;
+    doc.setFont('helvetica','normal');doc.setFontSize(policyFont);doc.setTextColor(...theme.muted);
+    blocks.forEach(lines=>{doc.text(lines,M,y,{lineHeightFactor:1.22});y+=lines.length*policyFont*0.43+1;});y+=2;
+  });
+
+  const signature=(center,name,role)=>{
+    doc.setFont('helvetica','bold');doc.setFontSize(10);
+    const lineWidth=doc.getTextWidth(name);
+    doc.setDrawColor(...theme.muted);doc.setLineWidth(0.3);
+    // Space above the line is intentionally left free for a handwritten signature.
+    doc.line(center-lineWidth/2,267,center+lineWidth/2,267);
+    doc.setTextColor(...theme.cream);doc.text(name,center,272,{align:'center'});
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.muted);
+    doc.text(role,center,277,{align:'center'});
+  };
+  signature(M+(W-2*M)/4,'Rene Acklin','Lodge Manager');
+  signature(W-M-(W-2*M)/4,'Francisca Pualuan','Hospitality Manager');
+  doc.setDrawColor(...theme.rust);doc.setLineWidth(0.4);doc.line(M,285,W-M,285);
+  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...theme.muted);
+  doc.text('Green Baker Lodge · Puerto Bertrand, Patagonia · Valor referencial sujeto a confirmación',W/2,290,{align:'center'});
 
   // Finish rendering before reserving a number in Airtable.
   doc.output('arraybuffer');
