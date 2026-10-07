@@ -377,13 +377,14 @@ async function genPDF(){
   }
 
   // Header text
+  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(139,140,124);
+  doc.text('Temporada 2026-2027',M+24,7);
   doc.setTextColor(...theme.cream); doc.setFontSize(22); doc.setFont('helvetica','bold');
   doc.text('GREEN BAKER', M+24, 16);
   doc.setTextColor(...theme.rust);
   doc.text('LODGE', M+24, 25);
   doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...theme.muted);
-  doc.text('Temporada 2026-2027',M+24,32);
-  doc.setFontSize(7);doc.text('PATAGONIA · CHILE',M+24,38);
+  doc.setFontSize(7);doc.text('PATAGONIA · CHILE',M+24,33);
 
   doc.setTextColor(...theme.cream); doc.setFontSize(16); doc.setFont('helvetica','bold');
   // The final title is added after Airtable assigns the shared number.
