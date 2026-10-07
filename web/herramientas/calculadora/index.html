@@ -169,7 +169,7 @@
         <label class="check"><input type="checkbox" id="operator"><span>Grupo vía operador (−20%)</span></label>
         <label class="check"><input type="checkbox" id="sixth"><span>6to huésped gratis (descontar el participante más barato)</span></label>
         <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
-          <span style="font-size:13px;color:var(--ice)">Descuento admin</span>
+          <span style="font-size:13px;color:var(--ice)">Descuento comercial</span>
           <input type="number" id="adminpct" value="0" min="0" max="100" style="width:70px;padding:7px 9px"> <span style="color:var(--muted);font-size:13px">%</span>
         </div>
       </div>
@@ -263,7 +263,7 @@ function calc(){
   bd.forEach(([l,v])=>wrap.innerHTML+=`<div class="line"><span class="lbl">${l}</span><span class="val">${fmt(v,r.sym)}</span></div>`);
   if(sixthDisc)wrap.innerHTML+=`<div class="line discount"><span class="lbl">6to huésped gratis</span><span class="val">− ${fmt(sixthDisc,r.sym)}</span></div>`;
   if(opDisc)wrap.innerHTML+=`<div class="line discount"><span class="lbl">Operador −20%</span><span class="val">− ${fmt(opDisc,r.sym)}</span></div>`;
-  if(adminDisc)wrap.innerHTML+=`<div class="line discount"><span class="lbl">Descuento admin −${adminPct}%</span><span class="val">− ${fmt(adminDisc,r.sym)}</span></div>`;
+  if(adminDisc)wrap.innerHTML+=`<div class="line discount"><span class="lbl">Descuento comercial −${adminPct}%</span><span class="val">− ${fmt(adminDisc,r.sym)}</span></div>`;
   if(!bd.length)wrap.innerHTML=`<div class="line"><span class="lbl">Agrega participantes para ver el desglose</span></div>`;
 
   $('currency').textContent=r.sym;$('curcode').textContent=r.cur;
@@ -289,7 +289,7 @@ function copyText(){
   s.bd.forEach(([l,v])=>t+=`${l}: ${fmt(v,r.sym)}\n`);
   if(s.sixthDisc)t+=`6to gratis: -${fmt(s.sixthDisc,r.sym)}\n`;
   if(s.opDisc)t+=`Operador -20%: -${fmt(s.opDisc,r.sym)}\n`;
-  if(s.adminDisc)t+=`Descuento admin -${s.adminPct}%: -${fmt(s.adminDisc,r.sym)}\n`;
+  if(s.adminDisc)t+=`Descuento comercial -${s.adminPct}%: -${fmt(s.adminDisc,r.sym)}\n`;
   t+=`\nPRECIO FINAL: ${fmt(s.finalPack,r.sym)} ${r.cur}\n`;
   t+=`Reserva 50%: ${fmt(s.finalPack*0.5,r.sym)}\nSaldo 50%: ${fmt(s.finalPack*0.5,r.sym)}`;
   navigator.clipboard.writeText(t).then(()=>{
