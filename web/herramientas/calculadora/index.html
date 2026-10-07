@@ -352,8 +352,8 @@ async function genPDF(){
   doc.setFillColor(...theme.background); doc.rect(0,0,W,297,'F');
   let y=0;
 
-  // Header background (brand dark)
-  doc.setFillColor(...theme.panel); doc.rect(0,0,W,44,'F');
+  // A continuous background keeps the header coherent with the document.
+  doc.setFillColor(...theme.background); doc.rect(0,0,W,44,'F');
   doc.setFillColor(...theme.rust); doc.rect(M,43,W-2*M,0.7,'F');
 
   // Try to load logo SVG and render into PDF as PNG (fallback if fails)
@@ -483,18 +483,24 @@ async function genPDF(){
     blocks.forEach(lines=>{doc.text(lines,M,y,{lineHeightFactor:1.22});y+=lines.length*policyFont*0.43+1;});y+=2;
   });
 
-  const signature=(center,name,role)=>{
-    doc.setFont('helvetica','bold');doc.setFontSize(10);
-    const lineWidth=doc.getTextWidth(name);
+  doc.setFont('helvetica','bold');doc.setFontSize(10);
+  const signatureWidth=doc.getTextWidth('Francisca Pualuan');
+  const signatureInset=M+8;
+  const signature=(side,name,role)=>{
+    const isLeft=side==='left';
+    const anchor=isLeft?signatureInset:W-signatureInset;
+    const start=isLeft?anchor:anchor-signatureWidth;
+    const align=isLeft?'left':'right';
     doc.setDrawColor(...theme.muted);doc.setLineWidth(0.3);
-    // Space above the line is intentionally left free for a handwritten signature.
-    doc.line(center-lineWidth/2,267,center+lineWidth/2,267);
-    doc.setTextColor(...theme.cream);doc.text(name,center,272,{align:'center'});
+    // Matching line widths and outer margins, with free space above for signatures.
+    doc.line(start,267,start+signatureWidth,267);
+    doc.setFont('helvetica','bold');doc.setFontSize(10);
+    doc.setTextColor(...theme.cream);doc.text(name,anchor,272,{align});
     doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.muted);
-    doc.text(role,center,277,{align:'center'});
+    doc.text(role,anchor,277,{align});
   };
-  signature(M+(W-2*M)/4,'Rene Acklin','Lodge Manager');
-  signature(W-M-(W-2*M)/4,'Francisca Pualuan','Hospitality Manager');
+  signature('left','Rene Acklin','Lodge Manager');
+  signature('right','Francisca Pualuan','Hospitality Manager');
   doc.setDrawColor(...theme.rust);doc.setLineWidth(0.4);doc.line(M,285,W-M,285);
   doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...theme.muted);
   doc.text('Green Baker Lodge · Puerto Bertrand, Patagonia · Valor referencial sujeto a confirmación',W/2,290,{align:'center'});
