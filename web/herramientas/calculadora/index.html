@@ -334,11 +334,12 @@ async function genPDF(){
   const css=getComputedStyle(document.documentElement);
   const rgb=(value)=>value.trim().replace('#','').match(/.{2}/g).map(v=>parseInt(v,16));
   const theme={
-    background:rgb('#101a12'), panel:rgb('#13221c'),
+    background:rgb(css.getPropertyValue('--brand-cream')), header:rgb('#101a12'), ink:rgb('#30382F'),
     dark:rgb(css.getPropertyValue('--brand-dark')),
     rust:rgb(css.getPropertyValue('--brand-rust')),
     cream:rgb(css.getPropertyValue('--brand-cream')),
-    muted:rgb(css.getPropertyValue('--muted')), secondary:rgb('#8F9487'), border:rgb('#344239')
+    muted:rgb('#656658'),secondary:rgb('#63695C'),border:rgb('#D2CCBF'),
+    headerMuted:rgb(css.getPropertyValue('--muted')),headerSecondary:rgb('#8F9487')
   };
   const panel=(top,height)=>{
     // Editorial sections use a shared baseline and fine rules instead of cards.
@@ -348,8 +349,8 @@ async function genPDF(){
   doc.setFillColor(...theme.background); doc.rect(0,0,W,297,'F');
   let y=0;
 
-  // A continuous background keeps the header coherent with the document.
-  doc.setFillColor(...theme.background); doc.rect(0,0,W,44,'F');
+  // A green brand header above warm beige document stock.
+  doc.setFillColor(...theme.header);doc.rect(0,0,W,44,'F');
   doc.setFillColor(...theme.rust); doc.rect(M,43,W-2*M,0.7,'F');
 
   // Render the calculator's actual brand fonts, tracking and proportions as one block.
@@ -406,15 +407,15 @@ async function genPDF(){
       doc.setTextColor(...(index===2?theme.rust:theme.cream));
       doc.text(word,M,16+index*8,{charSpace:0.8});
     });
-    doc.setFont('helvetica','normal');doc.setFontSize(6);doc.setTextColor(...theme.muted);
+    doc.setFont('helvetica','normal');doc.setFontSize(6);doc.setTextColor(...theme.headerMuted);
     doc.text('PATAGONIA · CHILE',M,38,{charSpace:0.4});
   }
-  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...theme.secondary);
+  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...theme.headerSecondary);
   mutedText(()=>doc.text('Temporada 2026-2027',M,6));
 
   doc.setTextColor(...theme.cream); doc.setFontSize(16); doc.setFont('helvetica','bold');
   // The final title is added after Airtable assigns the shared number.
-  doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...theme.muted);
+  doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...theme.headerMuted);
   const today=new Date().toLocaleDateString('es-CL');
   doc.text(`Emitida: ${today}`, W-M, 21, {align:'right'});
 
@@ -426,7 +427,7 @@ async function genPDF(){
   y=53;
   doc.setTextColor(...theme.rust);doc.setFont('helvetica','bold');doc.setFontSize(7.5);
   doc.text('PREPARADA PARA',M,y);y+=7;
-  doc.setTextColor(...theme.cream);doc.setFont('times','normal');doc.setFontSize(18);
+  doc.setTextColor(...theme.ink);doc.setFont('times','normal');doc.setFontSize(18);
   doc.text(nameLines,M,y);y+=nameLines.length*6+2;
   doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...theme.muted);
   if(s.email){doc.text(doc.splitTextToSize(s.email,W-2*M),M,y);y+=5;}
@@ -452,7 +453,7 @@ async function genPDF(){
   y+=6;rule(y);
   programs.forEach(([count,title,description,value])=>{
     const rowTop=y;
-    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(...theme.cream);
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(...theme.ink);
     doc.text(title,M,rowTop+3.2,{baseline:'middle'});
     doc.text(fmt(value,r.sym),W-M,rowTop+5.5,{align:'right',baseline:'middle'});
     doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.muted);
@@ -468,7 +469,7 @@ async function genPDF(){
   });
   if(discounts.length)rule(y);
   y+=4;
-  doc.setFillColor(199,197,180);
+  doc.setFillColor(227,221,207);
   doc.roundedRect(M-5,y,W-2*M+10,26,2,2,'F');
   // Fill the left corners square; keep the right corners subtly rounded.
   doc.rect(M-5,y,3,26,'F');
@@ -488,7 +489,7 @@ async function genPDF(){
   doc.setDrawColor(...theme.border);doc.line(W/2,y+11,W/2,y+28);
   const payment=(x,title,timing)=>{
     doc.setFontSize(9);doc.setTextColor(...theme.rust);doc.text(title,x,y+13,{baseline:'middle'});
-    doc.setFont('times','bold');doc.setFontSize(16);doc.setTextColor(...theme.cream);doc.text(`${fmt(s.finalPack*0.5,r.sym)} ${r.cur}`,x,y+21,{baseline:'middle'});
+    doc.setFont('times','bold');doc.setFontSize(16);doc.setTextColor(...theme.ink);doc.text(`${fmt(s.finalPack*0.5,r.sym)} ${r.cur}`,x,y+21,{baseline:'middle'});
     doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.muted);doc.text(timing,x,y+28,{baseline:'middle'});
     doc.setFont('helvetica','bold');
   };
@@ -521,7 +522,7 @@ async function genPDF(){
   while(policyStart+policyHeight()>251&&policyFont>5.5){policyFont-=0.2;layout=policyLayout();}
   layout.forEach(([title,blocks])=>{
     doc.setFillColor(...theme.rust);doc.circle(M+0.6,y-0.8,0.6,'F');
-    doc.setFont('helvetica','bold');doc.setFontSize(policyFont+0.5);doc.setTextColor(...theme.cream);
+    doc.setFont('helvetica','bold');doc.setFontSize(policyFont+0.5);doc.setTextColor(...theme.ink);
     mutedText(()=>doc.text(title,M+3,y));y+=4;
     doc.setFont('helvetica','normal');doc.setFontSize(policyFont);doc.setTextColor(...theme.muted);
     blocks.forEach(lines=>{doc.text(lines,M,y,{lineHeightFactor:1.22});y+=lines.length*policyFont*0.43+1;});y+=2;
@@ -540,7 +541,7 @@ async function genPDF(){
     // Matching line widths and outer margins, with free space above for signatures.
     doc.line(start,267,start+signatureWidth,267);
     doc.setFont('helvetica','bold');doc.setFontSize(10);
-    doc.setTextColor(...theme.cream);doc.text(name,center,272,{align});
+    doc.setTextColor(...theme.ink);doc.text(name,center,272,{align});
     doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.secondary);
     mutedText(()=>doc.text(role,center,277,{align}));
     doc.setFontSize(7.5);mutedText(()=>doc.text(phone,center,281,{align}));
