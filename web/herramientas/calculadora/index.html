@@ -534,7 +534,7 @@ async function genPDF(){
   doc.setFont('helvetica','bold');doc.setFontSize(10);
   const signatureWidth=doc.getTextWidth('Francisca Pualuan');
   const signatureInset=M+8;
-  const signature=(side,name,role,phone)=>{
+  const signature=(side,name,role,email,phone)=>{
     const isLeft=side==='left';
     const anchor=isLeft?signatureInset:W-signatureInset;
     const start=isLeft?anchor:anchor-signatureWidth;
@@ -542,18 +542,20 @@ async function genPDF(){
     const align='center';
     doc.setDrawColor(...theme.muted);doc.setLineWidth(0.3);
     // Matching line widths and outer margins, with free space above for signatures.
-    doc.line(start,267,start+signatureWidth,267);
+    doc.line(start,263,start+signatureWidth,263);
     doc.setFont('helvetica','bold');doc.setFontSize(10);
-    doc.setTextColor(...theme.ink);doc.text(name,center,272,{align});
+    doc.setTextColor(...theme.ink);doc.text(name,center,268,{align});
     doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.secondary);
-    mutedText(()=>doc.text(role,center,277,{align}));
+    mutedText(()=>doc.text(role,center,273,{align}));
+    doc.setFontSize(7.5);mutedText(()=>doc.text(email,center,277,{align}));
     doc.setFontSize(7.5);mutedText(()=>doc.text(phone,center,281,{align}));
   };
-  signature('left','Rene Acklin','Lodge Manager','+56 9 3389 9681');
-  signature('right','Francisca Pualuan','Hospitality Manager','+56 9 2640 8219');
+  signature('left','Rene Acklin','Lodge Manager','gerencia@greenbakerlodge.cl','+56 9 3389 9681');
+  signature('right','Francisca Pualuan','Hospitality Manager','info@greenbakerlodge.cl','+56 9 2640 8219');
   doc.setDrawColor(...theme.rust);doc.setLineWidth(0.4);doc.line(M,285,W-M,285);
   doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...theme.muted);
   doc.text('Green Baker Lodge · Puerto Bertrand, Patagonia · Valores válidos para la temporada 2026-2027',W/2,290,{align:'center'});
+  doc.textWithLink('www.greenbakerlodge.cl',W/2,294,{align:'center',url:'https://www.greenbakerlodge.cl'});
 
   // Finish rendering before reserving a number in Airtable.
   doc.output('arraybuffer');
