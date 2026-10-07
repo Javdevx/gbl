@@ -384,19 +384,22 @@ async function genPDF(){
     const copyWidth=Math.max(width('GREEN',nameStyle),width('BAKER',nameStyle),width('LODGE',lodgeStyle),width('PATAGONIA · CHILE',tagStyle));
     const copyHeight=lineHeight*3+copyGap+tagHeight;
     const blockHeight=Math.max(copyHeight,logoHeight);
-    const blockWidth=copyWidth+logoGap+logoWidth;
-    canvas.width=Math.ceil(blockWidth*3);canvas.height=Math.ceil(blockHeight*3);
+    const scale=30/blockHeight;
+    const seasonSpace=5/scale;
+    const fullHeight=blockHeight+seasonSpace;
+    const fullLogoWidth=fullHeight*logoWidth/logoHeight;
+    const blockWidth=copyWidth+logoGap+fullLogoWidth;
+    canvas.width=Math.ceil(blockWidth*3);canvas.height=Math.ceil(fullHeight*3);
     ctx=canvas.getContext('2d');ctx.scale(3,3);
     const text=(value,style,x,baseline)=>{
       setType(style);ctx.fillStyle=style.color;
       [...value].forEach(char=>{ctx.fillText(char,x,baseline);x+=ctx.measureText(char).width+tracking(style);});
     };
-    const top=(blockHeight-copyHeight)/2;
+    const top=seasonSpace+(blockHeight-copyHeight)/2;
     ['GREEN','BAKER','LODGE'].forEach((value,index)=>text(value,index===2?lodgeStyle:nameStyle,0,top+index*lineHeight+fontSize*0.9));
     text('PATAGONIA · CHILE',tagStyle,0,top+lineHeight*3+copyGap+tagSize*0.9);
-    ctx.drawImage(img,copyWidth+logoGap,(blockHeight-logoHeight)/2,logoWidth,logoHeight);
-    const scale=30/blockHeight;
-    doc.addImage(canvas.toDataURL('image/png'),'PNG',M,9,blockWidth*scale,30);
+    ctx.drawImage(img,copyWidth+logoGap,0,fullLogoWidth,fullHeight);
+    doc.addImage(canvas.toDataURL('image/png'),'PNG',M,4,blockWidth*scale,35);
     brandRendered=true;
   }catch(error){
     // Keep a readable brand heading if an image or font cannot be rendered.
@@ -411,7 +414,7 @@ async function genPDF(){
     doc.text('PATAGONIA · CHILE',M,38,{charSpace:0.4});
   }
   doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...theme.headerSecondary);
-  mutedText(()=>doc.text('Temporada 2026-2027',M,6));
+  doc.text('Temporada 2026-2027',M,6);
 
   doc.setTextColor(...theme.cream); doc.setFontSize(16); doc.setFont('helvetica','bold');
   // The final title is added after Airtable assigns the shared number.
@@ -494,7 +497,7 @@ async function genPDF(){
     doc.setFont('helvetica','bold');
   };
   payment(M,'1. RESERVA · 50%','Al momento de confirmar la reserva.');
-  payment(rightX,'2. SALDO · 50%','90 días antes del check-in.');
+  payment(rightX,'2. SALDO · 50%','45 días antes del check-in.');
   y+=38;
 
   // Smaller policy typography leaves room for signatures on the same A4 page.
