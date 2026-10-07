@@ -382,7 +382,8 @@ async function genPDF(){
   doc.setTextColor(...theme.rust);
   doc.text('LODGE', M+24, 25);
   doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...theme.muted);
-  doc.text('PATAGONIA · CHILE', M+24, 33);
+  doc.text('Temporada 2026-2027',M+24,32);
+  doc.setFontSize(7);doc.text('PATAGONIA · CHILE',M+24,38);
 
   doc.setTextColor(...theme.cream); doc.setFontSize(16); doc.setFont('helvetica','bold');
   // The final title is added after Airtable assigns the shared number.
@@ -433,7 +434,10 @@ async function genPDF(){
     doc.text(label,M,y);doc.text('- '+fmt(value,r.sym),W-M,y,{align:'right'});y+=4.5;
   });
   y+=7;
-  doc.setFillColor(...theme.cream);doc.rect(M-5,y,W-2*M+10,26,'F');
+  doc.setFillColor(199,197,180);
+  doc.roundedRect(M-5,y,W-2*M+10,26,2,2,'F');
+  // Fill the left corners square; keep the right corners subtly rounded.
+  doc.rect(M-5,y,3,26,'F');
   doc.setFillColor(...theme.rust);doc.rect(M-5,y,1,26,'F');
   doc.setTextColor(...theme.dark);doc.setFont('helvetica','bold');doc.setFontSize(8);
   doc.text('PRECIO FINAL DEL PROGRAMA',W/2,y+6,{align:'center'});
@@ -490,24 +494,26 @@ async function genPDF(){
   doc.setFont('helvetica','bold');doc.setFontSize(10);
   const signatureWidth=doc.getTextWidth('Francisca Pualuan');
   const signatureInset=M+8;
-  const signature=(side,name,role)=>{
+  const signature=(side,name,role,phone)=>{
     const isLeft=side==='left';
     const anchor=isLeft?signatureInset:W-signatureInset;
     const start=isLeft?anchor:anchor-signatureWidth;
-    const align=isLeft?'left':'right';
+    const center=start+signatureWidth/2;
+    const align='center';
     doc.setDrawColor(...theme.muted);doc.setLineWidth(0.3);
     // Matching line widths and outer margins, with free space above for signatures.
     doc.line(start,267,start+signatureWidth,267);
     doc.setFont('helvetica','bold');doc.setFontSize(10);
-    doc.setTextColor(...theme.cream);doc.text(name,anchor,272,{align});
+    doc.setTextColor(...theme.cream);doc.text(name,center,272,{align});
     doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.muted);
-    doc.text(role,anchor,277,{align});
+    doc.text(role,center,277,{align});
+    doc.setFontSize(7.5);doc.text(phone,center,281,{align});
   };
-  signature('left','Rene Acklin','Lodge Manager');
-  signature('right','Francisca Pualuan','Hospitality Manager');
+  signature('left','Rene Acklin','Lodge Manager','+56 9 3389 9681');
+  signature('right','Francisca Pualuan','Hospitality Manager','+56 9 2640 8219');
   doc.setDrawColor(...theme.rust);doc.setLineWidth(0.4);doc.line(M,285,W-M,285);
   doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...theme.muted);
-  doc.text('Green Baker Lodge · Puerto Bertrand, Patagonia · Valor referencial sujeto a confirmación',W/2,290,{align:'center'});
+  doc.text('Green Baker Lodge · Puerto Bertrand, Patagonia · Valores válidos para la temporada 2026-2027',W/2,290,{align:'center'});
 
   // Finish rendering before reserving a number in Airtable.
   doc.output('arraybuffer');
