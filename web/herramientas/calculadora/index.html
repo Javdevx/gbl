@@ -479,20 +479,22 @@ async function genPDF(){
   doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.muted);
   doc.text('*IVA incluido',W/2,y+31,{align:'center'});y+=34;
 
-  panel(y,28);
+  panel(y,31);
   doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(...theme.rust);
   doc.text('CONDICIONES DE PAGO',M,y+6);
+  doc.setDrawColor(...theme.rust);doc.setLineWidth(0.2);
+  doc.line(M,y+7.2,M+doc.getTextWidth('CONDICIONES DE PAGO'),y+7.2);
   const rightX=W/2+5;
-  doc.setDrawColor(...theme.border);doc.line(W/2,y+10,W/2,y+25);
+  doc.setDrawColor(...theme.border);doc.line(W/2,y+11,W/2,y+28);
   const payment=(x,title,timing)=>{
-    doc.setFontSize(9);doc.setTextColor(...theme.rust);doc.text(title,x,y+12,{baseline:'middle'});
-    doc.setFont('times','bold');doc.setFontSize(16);doc.setTextColor(...theme.cream);doc.text(`${fmt(s.finalPack*0.5,r.sym)} ${r.cur}`,x,y+19,{baseline:'middle'});
-    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.muted);doc.text(timing,x,y+25,{baseline:'middle'});
+    doc.setFontSize(9);doc.setTextColor(...theme.rust);doc.text(title,x,y+13,{baseline:'middle'});
+    doc.setFont('times','bold');doc.setFontSize(16);doc.setTextColor(...theme.cream);doc.text(`${fmt(s.finalPack*0.5,r.sym)} ${r.cur}`,x,y+21,{baseline:'middle'});
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.muted);doc.text(timing,x,y+28,{baseline:'middle'});
     doc.setFont('helvetica','bold');
   };
   payment(M,'1. RESERVA · 50%','Al momento de confirmar la reserva.');
   payment(rightX,'2. SALDO · 50%','90 días antes del check-in.');
-  y+=32;
+  y+=38;
 
   // Smaller policy typography leaves room for signatures on the same A4 page.
   const policyStart=y;
