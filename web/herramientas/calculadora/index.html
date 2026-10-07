@@ -326,6 +326,10 @@ async function genPDF(){
   const { jsPDF }=window.jspdf;
   const doc=new jsPDF({unit:'mm',format:'a4'});
   const W=210, M=18;
+  const mutedText=(draw)=>{
+    doc.saveGraphicsState();doc.setGState(new doc.GState({opacity:0.7}));
+    draw();doc.restoreGraphicsState();
+  };
   // Reuse the calculator's palette so both outputs keep the same identity.
   const css=getComputedStyle(document.documentElement);
   const rgb=(value)=>value.trim().replace('#','').match(/.{2}/g).map(v=>parseInt(v,16));
@@ -406,7 +410,7 @@ async function genPDF(){
     doc.text('PATAGONIA · CHILE',M,38,{charSpace:0.4});
   }
   doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...theme.secondary);
-  doc.text('Temporada 2026-2027',M,6);
+  mutedText(()=>doc.text('Temporada 2026-2027',M,6));
 
   doc.setTextColor(...theme.cream); doc.setFontSize(16); doc.setFont('helvetica','bold');
   // The final title is added after Airtable assigns the shared number.
@@ -419,7 +423,7 @@ async function genPDF(){
   const nameLines=doc.splitTextToSize(displayName,W-2*M);
   const infoHeight=26+nameLines.length*6+(s.email?5:0);
   panel(49,infoHeight);
-  y=55;
+  y=53;
   doc.setTextColor(...theme.rust);doc.setFont('helvetica','bold');doc.setFontSize(7.5);
   doc.text('PREPARADA PARA',M,y);y+=7;
   doc.setTextColor(...theme.cream);doc.setFont('times','normal');doc.setFontSize(18);
@@ -439,24 +443,30 @@ async function genPDF(){
   if(s.sixthDisc)discounts.push(['Beneficio: sexto huésped sin cargo',s.sixthDisc]);
   if(s.opDisc)discounts.push(['Descuento operador · 20%',s.opDisc]);
   if(s.adminDisc)discounts.push([`Descuento comercial · ${s.adminPct}%`,s.adminDisc]);
-  panel(y-4,11+programs.length*11+discounts.length*5.5);
+  const rule=position=>{
+    doc.setDrawColor(...theme.border);doc.setLineWidth(0.15);doc.line(M,position,W-M,position);
+  };
   doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(...theme.rust);
-  doc.text('DETALLE DEL PROGRAMA',M,y+2);doc.text('VALOR',W-M,y+2,{align:'right'});y+=9;
-  programs.forEach(([count,title,description,value],index)=>{
+  doc.text('DETALLE DEL PROGRAMA',M,y+1,{baseline:'middle'});
+  doc.text('VALOR',W-M,y+1,{align:'right',baseline:'middle'});
+  y+=6;rule(y);
+  programs.forEach(([count,title,description,value])=>{
+    const rowTop=y;
     doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(...theme.cream);
-    doc.text(title,M,y);doc.text(fmt(value,r.sym),W-M,y,{align:'right'});
+    doc.text(title,M,rowTop+3.2,{baseline:'middle'});
+    doc.text(fmt(value,r.sym),W-M,rowTop+5.5,{align:'right',baseline:'middle'});
     doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.muted);
-    doc.text(`${description} · ${count} huésped${count>1?'es':''} · ${s.nights} noches`,M,y+5);
-    if(index<programs.length-1||discounts.length){
-      doc.setDrawColor(...theme.border);doc.setLineWidth(0.15);doc.line(M,y+8,W-M,y+8);
-    }
-    y+=11;
+    doc.text(`${description} · ${count} huésped${count>1?'es':''} · ${s.nights} noches`,M,rowTop+7.7,{baseline:'middle'});
+    y+=11;rule(y);
   });
   discounts.forEach(([label,value])=>{
+    const center=y+2.75;
     doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...theme.rust);
-    // Center the glyphs vertically within equal-height discount rows.
-    doc.text(label,M,y+0.6);doc.text('- '+fmt(value,r.sym),W-M,y+0.6,{align:'right'});y+=5.5;
+    doc.text(label,M,center,{baseline:'middle'});
+    doc.text('- '+fmt(value,r.sym),W-M,center,{align:'right',baseline:'middle'});
+    y+=5.5;
   });
+  if(discounts.length)rule(y);
   y+=4;
   doc.setFillColor(199,197,180);
   doc.roundedRect(M-5,y,W-2*M+10,26,2,2,'F');
@@ -464,8 +474,8 @@ async function genPDF(){
   doc.rect(M-5,y,3,26,'F');
   doc.setFillColor(...theme.rust);doc.rect(M-5,y,1,26,'F');
   doc.setTextColor(...theme.dark);doc.setFont('helvetica','bold');doc.setFontSize(8);
-  doc.text('PRECIO FINAL DEL PROGRAMA',W/2,y+6,{align:'center'});
-  doc.setFont('times','bold');doc.setFontSize(27);doc.text(`${fmt(s.finalPack,r.sym)} ${r.cur}`,W/2,y+19,{align:'center'});
+  doc.text('PRECIO FINAL DEL PROGRAMA',W/2,y+6.1,{align:'center',baseline:'middle'});
+  doc.setFont('times','bold');doc.setFontSize(27);doc.text(`${fmt(s.finalPack,r.sym)} ${r.cur}`,W/2,y+16.4,{align:'center',baseline:'middle'});
   doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.muted);
   doc.text('*IVA incluido',W/2,y+31,{align:'center'});y+=34;
 
@@ -475,9 +485,9 @@ async function genPDF(){
   const rightX=W/2+5;
   doc.setDrawColor(...theme.border);doc.line(W/2,y+10,W/2,y+25);
   const payment=(x,title,timing)=>{
-    doc.setFontSize(9);doc.setTextColor(...theme.rust);doc.text(title,x,y+12);
-    doc.setFont('times','bold');doc.setFontSize(16);doc.setTextColor(...theme.cream);doc.text(`${fmt(s.finalPack*0.5,r.sym)} ${r.cur}`,x,y+19);
-    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.muted);doc.text(timing,x,y+25);
+    doc.setFontSize(9);doc.setTextColor(...theme.rust);doc.text(title,x,y+12,{baseline:'middle'});
+    doc.setFont('times','bold');doc.setFontSize(16);doc.setTextColor(...theme.cream);doc.text(`${fmt(s.finalPack*0.5,r.sym)} ${r.cur}`,x,y+19,{baseline:'middle'});
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.muted);doc.text(timing,x,y+25,{baseline:'middle'});
     doc.setFont('helvetica','bold');
   };
   payment(M,'1. RESERVA · 50%','Al momento de confirmar la reserva.');
@@ -510,7 +520,7 @@ async function genPDF(){
   layout.forEach(([title,blocks])=>{
     doc.setFillColor(...theme.rust);doc.circle(M+0.6,y-0.8,0.6,'F');
     doc.setFont('helvetica','bold');doc.setFontSize(policyFont+0.5);doc.setTextColor(...theme.cream);
-    doc.text(title,M+3,y);y+=4;
+    mutedText(()=>doc.text(title,M+3,y));y+=4;
     doc.setFont('helvetica','normal');doc.setFontSize(policyFont);doc.setTextColor(...theme.muted);
     blocks.forEach(lines=>{doc.text(lines,M,y,{lineHeightFactor:1.22});y+=lines.length*policyFont*0.43+1;});y+=2;
   });
@@ -530,8 +540,8 @@ async function genPDF(){
     doc.setFont('helvetica','bold');doc.setFontSize(10);
     doc.setTextColor(...theme.cream);doc.text(name,center,272,{align});
     doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...theme.secondary);
-    doc.text(role,center,277,{align});
-    doc.setFontSize(7.5);doc.text(phone,center,281,{align});
+    mutedText(()=>doc.text(role,center,277,{align}));
+    doc.setFontSize(7.5);mutedText(()=>doc.text(phone,center,281,{align}));
   };
   signature('left','Rene Acklin','Lodge Manager','+56 9 3389 9681');
   signature('right','Francisca Pualuan','Hospitality Manager','+56 9 2640 8219');
