@@ -298,83 +298,145 @@ function copyText(){
   });
 }
 
+let generatingPDF=false;
+let pendingPDF=null;
+try{pendingPDF=JSON.parse(sessionStorage.getItem('gbl-pending-pdf')||'null');}catch{}
+
+async function registerQuote(s,quoteMarket){
+  const quote={
+    quoter:s.quoter,email:s.email,market:quoteMarket,
+    arrival:s.arrival,departure:s.departure,
+    full:s.nFull,single:s.nSingle,nonangler:s.nNon,total:s.finalPack,
+    breakdown:s.bd,sixthDiscount:s.sixthDisc,operatorDiscount:s.opDisc,
+    adminDiscount:s.adminDisc,adminPercent:s.adminPct
+  };
+  const signature=JSON.stringify(quote);
+  if(!pendingPDF||pendingPDF.signature!==signature){
+    pendingPDF={signature,requestId:crypto.randomUUID()};
+  }
+  const persist=()=>{try{sessionStorage.setItem('gbl-pending-pdf',JSON.stringify(pendingPDF));}catch{}};
+  persist();
+  if(pendingPDF.registration)return pendingPDF.registration;
+  const response=await fetch('/api/cotizaciones',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({requestId:pendingPDF.requestId,quote})
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.error||'No se pudo registrar la cotización en Airtable.');
+  if(!Number.isSafeInteger(data.number)||data.number<70)throw new Error('Airtable no devolvió un número de cotización válido.');
+  pendingPDF.registration=data;
+  persist();
+  return data;
+}
+
 async function genPDF(){
-  const s=state,r=s.r;
+  const s=structuredClone(state),r=s.r,quoteMarket=market;
   const { jsPDF }=window.jspdf;
   const doc=new jsPDF({unit:'mm',format:'a4'});
   const W=210, M=18;
+  // Reuse the calculator's palette so both outputs keep the same identity.
+  const css=getComputedStyle(document.documentElement);
+  const rgb=(value)=>value.trim().replace('#','').match(/.{2}/g).map(v=>parseInt(v,16));
+  const theme={
+    background:rgb('#101a12'), panel:rgb('#13221c'),
+    dark:rgb(css.getPropertyValue('--brand-dark')),
+    rust:rgb(css.getPropertyValue('--brand-rust')),
+    cream:rgb(css.getPropertyValue('--brand-cream')),
+    muted:rgb(css.getPropertyValue('--muted')), border:rgb('#344239')
+  };
+  const panel=(top,height)=>{
+    doc.setFillColor(...theme.panel); doc.setDrawColor(...theme.border);
+    doc.setLineWidth(0.25); doc.roundedRect(M-5,top,W-2*M+10,height,4,4,'FD');
+  };
+  doc.setFillColor(...theme.background); doc.rect(0,0,W,297,'F');
   let y=0;
 
   // Header background (brand dark)
-  doc.setFillColor(40,69,52); doc.rect(0,0,W,44,'F');
+  doc.setFillColor(...theme.panel); doc.rect(0,0,W,44,'F');
+  doc.setFillColor(...theme.rust); doc.rect(M,43,W-2*M,0.7,'F');
 
   // Try to load logo SVG and render into PDF as PNG (fallback if fails)
   try{
-    const logoUrl = 'GBL Website | Antigravity/public/assets/logo-gbl.svg';
+    const logo=document.querySelector('.logo-cell svg');
+    const logoUrl='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(logo));
     const img = await new Promise((res,rej)=>{
       const i=new Image(); i.crossOrigin='anonymous'; i.onload=()=>res(i); i.onerror=rej; i.src=logoUrl;
     });
-    const canvas=document.createElement('canvas'); canvas.width=200; canvas.height=200;
+    const canvas=document.createElement('canvas'); canvas.width=196; canvas.height=340;
     const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height);
     // draw image centered and scaled
     const scale=Math.min(canvas.width/img.width,canvas.height/img.height)||1;
     const iw=img.width*scale, ih=img.height*scale; const ix=(canvas.width-iw)/2, iy=(canvas.height-ih)/2;
     ctx.drawImage(img,ix,iy,iw,ih);
     const dataUrl=canvas.toDataURL('image/png');
-    doc.addImage(dataUrl,'PNG',M,6,22,22);
+    doc.addImage(dataUrl,'PNG',M,6,17,29.5);
   }catch(e){
     // ignore logo failure — continue without image
   }
 
   // Header text
-  doc.setTextColor(243,239,230); doc.setFontSize(9); doc.setFont('helvetica','bold');
-  doc.text('GREEN BAKER LODGE · PATAGONIA', M+28, 16);
-  doc.setTextColor(255,255,255); doc.setFontSize(22); doc.setFont('helvetica','normal');
-  doc.text('Cotización', M+28, 32);
-  doc.setFontSize(9); doc.setTextColor(180,160,145);
-  const today=new Date().toLocaleDateString('es-CL');
-  doc.text(`Emitida: ${today}`, W-M, 16, {align:'right'});
+  doc.setTextColor(...theme.cream); doc.setFontSize(22); doc.setFont('helvetica','bold');
+  doc.text('GREEN BAKER', M+24, 16);
+  doc.setTextColor(...theme.rust);
+  doc.text('LODGE', M+24, 25);
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...theme.muted);
+  doc.text('PATAGONIA · CHILE', M+24, 33);
 
+  doc.setTextColor(...theme.cream); doc.setFontSize(16); doc.setFont('helvetica','bold');
+  // The final title is added after Airtable assigns the shared number.
+  doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...theme.muted);
+  const today=new Date().toLocaleDateString('es-CL');
+  doc.text(`Emitida: ${today}`, W-M, 21, {align:'right'});
+
+  panel(49,s.email?31:26);
   y=56;
-  doc.setTextColor(40,40,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+  doc.setTextColor(...theme.cream); doc.setFontSize(11); doc.setFont('helvetica','bold');
   doc.text(s.quoter||'Cotizante', M, y);
-  y+=6; doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(90,90,90);
+  y+=6; doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...theme.muted);
   if(s.email){doc.text(s.email, M, y); y+=5;}
-  doc.text(`Mercado: ${market==='nac'?'Nacional (CLP)':'Internacional (USD)'}`, M, y); y+=5;
+  doc.text(`Mercado: ${quoteMarket==='nac'?'Nacional (CLP)':'Internacional (USD)'}`, M, y); y+=5;
   doc.text(`Estadía: ${fmtDate(s.arrival)} — ${fmtDate(s.departure)}  (${s.nights} noche${s.nights>1?'s':''})`, M, y);
   y+=10;
 
-  doc.setDrawColor(184,110,75); doc.setLineWidth(0.5); doc.line(M,y,W-M,y); y+=7;
-  doc.setFontSize(8); doc.setTextColor(120,120,120); doc.setFont('helvetica','bold');
+  const detailRows=s.bd.length+[s.sixthDisc,s.opDisc,s.adminDisc].filter(Boolean).length;
+  panel(y-3,18+detailRows*6.5);
+  doc.setDrawColor(...theme.rust); doc.setLineWidth(0.5); doc.line(M,y,W-M,y); y+=7;
+  doc.setFontSize(8); doc.setTextColor(...theme.muted); doc.setFont('helvetica','bold');
   doc.text('DETALLE', M, y); doc.text('VALOR', W-M, y, {align:'right'}); y+=6;
-  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(40,40,40);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...theme.cream);
 
   s.bd.forEach(([l,v])=>{
     doc.text(l, M, y);
     doc.text(fmt(v,r.sym), W-M, y, {align:'right'}); y+=6.5;
   });
-  doc.setTextColor(184,110,75);
+  doc.setTextColor(...theme.rust);
   if(s.sixthDisc){doc.text('6to huésped gratis',M,y);doc.text('- '+fmt(s.sixthDisc,r.sym),W-M,y,{align:'right'});y+=6.5;}
   if(s.opDisc){doc.text('Operador -20%',M,y);doc.text('- '+fmt(s.opDisc,r.sym),W-M,y,{align:'right'});y+=6.5;}
   if(s.adminDisc){doc.text(`Descuento admin -${s.adminPct}%`,M,y);doc.text('- '+fmt(s.adminDisc,r.sym),W-M,y,{align:'right'});y+=6.5;}
 
-  y+=2; doc.setDrawColor(220,220,220); doc.line(M,y,W-M,y); y+=9;
+  y+=2; doc.setDrawColor(...theme.border); doc.line(M,y,W-M,y); y+=9;
 
-  doc.setFillColor(40,69,52); doc.roundedRect(M,y-6,W-2*M,16,2,2,'F');
-  doc.setTextColor(184,110,75); doc.setFontSize(9); doc.setFont('helvetica','bold');
+  doc.setFillColor(...theme.dark); doc.setDrawColor(...theme.rust);
+  doc.roundedRect(M-5,y-6,W-2*M+10,16,3,3,'FD');
+  doc.setTextColor(...theme.rust); doc.setFontSize(9); doc.setFont('helvetica','bold');
   doc.text('PRECIO FINAL', M+5, y+1);
-  doc.setTextColor(255,255,255); doc.setFontSize(15);
+  doc.setTextColor(...theme.cream); doc.setFontSize(15);
   doc.text(`${fmt(s.finalPack,r.sym)} ${r.cur}`, W-M-5, y+2.5, {align:'right'});
   y+=18;
 
-  doc.setTextColor(60,60,60); doc.setFontSize(10); doc.setFont('helvetica','normal');
+  const payWidth=(W-2*M-4)/2;
+  doc.setFillColor(...theme.panel); doc.setDrawColor(...theme.border);
+  doc.roundedRect(M-5,y-4,payWidth+3,11,2,2,'FD');
+  doc.roundedRect(M+payWidth+1,y-4,payWidth+4,11,2,2,'FD');
+  doc.setTextColor(...theme.cream); doc.setFontSize(10); doc.setFont('helvetica','normal');
   doc.text(`Reserva (50%): ${fmt(s.finalPack*0.5,r.sym)}`, M, y);
   doc.text(`Saldo (50%): ${fmt(s.finalPack*0.5,r.sym)}`, W-M, y, {align:'right'}); y+=12;
 
   const pol=(title,lines)=>{
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(40,40,40);
-    doc.text(title, M, y); y+=5;
-    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(90,90,90);
+    doc.setFillColor(...theme.rust); doc.circle(M+1,y-1,0.8,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...theme.cream);
+    doc.text(title, M+5, y); y+=5;
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...theme.muted);
     lines.forEach(l=>{const w=doc.splitTextToSize(l,W-2*M);doc.text(w,M,y);y+=w.length*4.2+1.5;});
     y+=3;
   };
@@ -389,12 +451,20 @@ async function genPDF(){
     'Green Baker Lodge no se hace responsable por cancelaciones o cambios derivados de clima, fuerza mayor, retrasos o cancelaciones de vuelos, o cualquier situación ajena a la operación del lodge.'
   ]);
 
-  doc.setDrawColor(184,110,75); doc.setLineWidth(0.4); doc.line(M,285,W-M,285);
-  doc.setFontSize(7.5); doc.setTextColor(130,130,130);
+  doc.setDrawColor(...theme.rust); doc.setLineWidth(0.4); doc.line(M,285,W-M,285);
+  doc.setFontSize(7.5); doc.setTextColor(...theme.muted);
   doc.text('Green Baker Lodge · Puerto Bertrand, Patagonia · Valor referencial sujeto a confirmación', W/2, 290, {align:'center'});
 
-  const fname=`Cotizacion_GBL_${(s.quoter||'grupo').replace(/[^a-zA-Z0-9]/g,'_')}.pdf`;
-  doc.save(fname);
+  // Finish rendering before reserving a number in Airtable.
+  doc.output('arraybuffer');
+  const registration=await registerQuote(s,quoteMarket);
+  doc.setTextColor(...theme.cream); doc.setFontSize(14); doc.setFont('helvetica','bold');
+  doc.text(`Cotización Nº${registration.number}`, W-M, 14, {align:'right'});
+  doc.setProperties({title:`Cotización Nº${registration.number} · Green Baker Lodge`});
+  const fname=`Cotizacion_GBL_${registration.number}_${(s.quoter||'grupo').replace(/[^a-zA-Z0-9]/g,'_')}.pdf`;
+  await doc.save(fname,{returnPromise:true});
+  pendingPDF=null;
+  try{sessionStorage.removeItem('gbl-pending-pdf');}catch{}
   const b=$('pdfBtn');b.textContent='PDF generado ✓';b.classList.add('done');
   setTimeout(()=>{b.textContent='Generar PDF';b.classList.remove('done')},1800);
 }
@@ -414,7 +484,22 @@ document.querySelectorAll('.stepper button').forEach(btn=>{
 ['arrival','departure','full','single','nonangler','operator','sixth','adminpct','quoter','email']
   .forEach(id=>$(id).addEventListener('input',calc));
 $('copyBtn').addEventListener('click',copyText);
-$('pdfBtn').addEventListener('click',()=>{ genPDF().catch(()=>{/* ignore */}); });
+$('pdfBtn').addEventListener('click',async()=>{
+  if(generatingPDF)return;
+  if(location.protocol==='file:'){
+    alert('Abre la calculadora publicada en Vercel para registrar la cotización y obtener su número.');return;
+  }
+  if(!state.nights||state.nFull+state.nSingle+state.nNon<1){
+    alert('Selecciona fechas válidas y agrega al menos un participante.');return;
+  }
+  generatingPDF=true;
+  const button=$('pdfBtn');button.disabled=true;button.textContent='Generando cotización…';
+  try{await genPDF();}
+  catch(error){
+    button.textContent='Generar PDF';button.classList.remove('done');
+    alert(error.message||'No se pudo generar el PDF. Reintenta con los mismos datos.');
+  }finally{generatingPDF=false;button.disabled=false;}
+});
 
 (function(){
   const t=new Date();const a=new Date(t);a.setDate(a.getDate()+30);
