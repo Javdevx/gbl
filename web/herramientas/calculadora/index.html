@@ -521,25 +521,38 @@ async function genPDF(){
     return policies.map(([title,lines])=>[title,lines.map(line=>doc.splitTextToSize(line,W-2*M))]);
   };
   let layout=policyLayout();
-  const policyHeight=()=>layout.reduce((height,[,blocks])=>height+6+blocks.reduce((sum,lines)=>sum+lines.length*policyFont*0.43+1,0),0);
-  while(policyStart+policyHeight()>251&&policyFont>5.5){policyFont-=0.2;layout=policyLayout();}
+  let compactPolicies=false;
+  const policyHeight=()=>layout.reduce((height,[,blocks])=>height+(compactPolicies?4:6)+blocks.reduce((sum,lines)=>sum+lines.length*policyFont*(compactPolicies?0.38:0.43)+(compactPolicies?0.5:1),0),0);
+  while(policyStart+policyHeight()>244&&policyFont>5.5){policyFont=Math.max(5.5,policyFont-0.2);layout=policyLayout();}
+  if(policyStart+policyHeight()>244)compactPolicies=true;
   layout.forEach(([title,blocks])=>{
     doc.setFillColor(...theme.rust);doc.circle(M+0.6,y-0.8,0.6,'F');
     doc.setFont('helvetica','bold');doc.setFontSize(policyFont+0.5);doc.setTextColor(...theme.ink);
-    mutedText(()=>doc.text(title,M+3,y));y+=4;
+    mutedText(()=>doc.text(title,M+3,y));y+=compactPolicies?3:4;
     doc.setFont('helvetica','normal');doc.setFontSize(policyFont);doc.setTextColor(...theme.muted);
-    blocks.forEach(lines=>{doc.text(lines,M,y,{lineHeightFactor:1.22});y+=lines.length*policyFont*0.43+1;});y+=2;
+    blocks.forEach(lines=>{doc.text(lines,M,y,{lineHeightFactor:compactPolicies?1.08:1.22});y+=lines.length*policyFont*(compactPolicies?0.38:0.43)+(compactPolicies?0.5:1);});y+=compactPolicies?1:2;
   });
 
   doc.setFont('helvetica','bold');doc.setFontSize(10);
   const signatureWidth=doc.getTextWidth('Francisca Pualuan');
   const signatureInset=M+8;
-  const signature=(side,name,role,email,phone)=>{
+  // Use the full-resolution transparent PNGs embedded in the supplied SVGs.
+  const signatureImages=await Promise.all(['rene','fran'].map(person=>new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.onload=()=>resolve(img);
+    img.onerror=()=>reject(new Error('No se pudo cargar la firma. Recarga la calculadora e intenta nuevamente.'));
+    img.src=`assets/firma_${person}.png`;
+  })));
+  const signature=(side,name,role,email,phone,img)=>{
     const isLeft=side==='left';
     const anchor=isLeft?signatureInset:W-signatureInset;
     const start=isLeft?anchor:anchor-signatureWidth;
     const center=start+signatureWidth/2;
     const align='center';
+    const imageScale=Math.min(signatureWidth/img.naturalWidth,16/img.naturalHeight);
+    const imageWidth=img.naturalWidth*imageScale;
+    const imageHeight=img.naturalHeight*imageScale;
+    doc.addImage(img,'PNG',center-imageWidth/2,262-imageHeight,imageWidth,imageHeight);
     doc.setDrawColor(...theme.muted);doc.setLineWidth(0.3);
     // Matching line widths and outer margins, with free space above for signatures.
     doc.line(start,263,start+signatureWidth,263);
@@ -550,8 +563,8 @@ async function genPDF(){
     doc.setFontSize(7.5);mutedText(()=>doc.text(email,center,277,{align}));
     doc.setFontSize(7.5);mutedText(()=>doc.text(phone,center,281,{align}));
   };
-  signature('left','Rene Acklin','Lodge Manager','gerencia@greenbakerlodge.cl','+56 9 3389 9681');
-  signature('right','Francisca Pualuan','Hospitality Manager','info@greenbakerlodge.cl','+56 9 2640 8219');
+  signature('left','Rene Acklin','Lodge Manager','gerencia@greenbakerlodge.cl','+56 9 3389 9681',signatureImages[0]);
+  signature('right','Francisca Pualuan','Hospitality Manager','info@greenbakerlodge.cl','+56 9 2640 8219',signatureImages[1]);
   doc.setDrawColor(...theme.rust);doc.setLineWidth(0.4);doc.line(M,285,W-M,285);
   doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...theme.muted);
   doc.text('Green Baker Lodge · Puerto Bertrand, Patagonia · Valores válidos para la temporada 2026-2027',W/2,290,{align:'center'});
