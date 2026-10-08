@@ -334,7 +334,7 @@ async function genPDF(){
   const css=getComputedStyle(document.documentElement);
   const rgb=(value)=>value.trim().replace('#','').match(/.{2}/g).map(v=>parseInt(v,16));
   const theme={
-    background:rgb(css.getPropertyValue('--brand-cream')), header:rgb('#101a12'), ink:rgb('#30382F'),
+    background:rgb(css.getPropertyValue('--brand-cream')), header:rgb('#0C282D'), ink:rgb('#30382F'),
     dark:rgb(css.getPropertyValue('--brand-dark')),
     rust:rgb(css.getPropertyValue('--brand-rust')),
     cream:rgb(css.getPropertyValue('--brand-cream')),
