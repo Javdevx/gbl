@@ -454,9 +454,9 @@ async function genPDF(){
     if(note){doc.setFontSize(8);doc.setTextColor(...theme.ink);doc.text(note,noteX,y);}
     if(separator){
       doc.setDrawColor(...theme.ink);doc.setLineWidth(0.2);
-      doc.line(M+12,y+1.5,noteX+longestNoteWidth,y+1.5);
+      doc.line(M+12,y+1,noteX+longestNoteWidth,y+1);
     }
-    y+=separator?6:4;
+    y+=4;
   };
   section('PROGRAMA');
   field('Estadía',`${fmtDate(s.arrival)} al ${fmtDate(s.departure)}`,`(${s.nights} noches)`,true);
