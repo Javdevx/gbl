@@ -77,13 +77,14 @@ const result = record => {
     const created=await fetch(endpoint,{
       method:'POST',headers,signal:AbortSignal.timeout(20000),
       body:JSON.stringify({records:[{fields:{
-        'Fecha tentativa de llegada':q.arrival,
-        'Fecha tentativa de salida':q.departure,
-        'N˚ de personas':q.full+q.single+q.nonangler,
-        'Precio cotizado':q.total,
-        'Temporada':process.env.AIRTABLE_SEASON||'26/27',
-        'Notas':notes
-      }}]})
+  'Nombre':q.quoter||'',
+  'Fecha tentativa de llegada':q.arrival,
+  'Fecha tentativa de salida':q.departure,
+  'N˚ de personas':q.full+q.single+q.nonangler,
+  'Precio cotizado':q.total,
+  'Temporada':process.env.AIRTABLE_SEASON||'26/27',
+  'Notas':notes
+}}]})
     });
     if(!created.ok)throw new Error(`airtable_${created.status}`);
     const data=await created.json();
