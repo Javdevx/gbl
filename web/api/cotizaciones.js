@@ -1,4 +1,5 @@
 // Vercel Node.js Function. Credentials are read only on the server.
+const { createQuoteToken } = require('./_lib/quote-auth');
 const NUMBER_FIELD='N˚ Cotización';
 const ID_FIELD='ID Cotización';
 
@@ -38,12 +39,27 @@ module.exports=async function handler(req,res){
   const endpoint=`https://api.airtable.com/v0/${encodeURIComponent(AIRTABLE_BASE_ID)}/${encodeURIComponent(AIRTABLE_TABLE_ID)}`;
   const headers={Authorization:`Bearer ${AIRTABLE_TOKEN}`,'Content-Type':'application/json'};
   const marker=`GBL-PDF:${requestId}`;
-  const result=record=>{
-    const internalNumber=record?.fields?.[NUMBER_FIELD];
-    const number=internalNumber+69;
-    if(!Number.isSafeInteger(internalNumber)||internalNumber<1)throw new Error('missing_number');
-    return {recordId:record.id,number,id:record.fields[ID_FIELD]||`Cotización Nº${number}`};
+  
+const result = record => {
+  const internalNumber = record?.fields?.[NUMBER_FIELD];
+  const number = internalNumber + 69;
+
+  if (!Number.isSafeInteger(internalNumber) || internalNumber < 1) {
+    throw new Error('missing_number');
+  }
+
+  return {
+    recordId: record.id,
+    number,
+    id: record.fields[ID_FIELD] || `Cotización Nº${number}`,
+    uploadToken: createQuoteToken({
+      recordId: record.id,
+      number,
+      requestId
+    })
   };
+};
+
   try{
     // A retry after a lost response recovers the record instead of consuming a number.
     const lookup=new URL(endpoint);

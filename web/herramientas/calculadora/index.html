@@ -307,7 +307,28 @@ async function registerQuote(s,quoteMarket){
   }
   const persist=()=>{try{sessionStorage.setItem('gbl-pending-pdf',JSON.stringify(pendingPDF));}catch{}};
   persist();
-  if(pendingPDF.registration)return pendingPDF.registration;
+  
+if (pendingPDF.registration?.uploadToken) {
+  try {
+    const tokenPayload = pendingPDF.registration.uploadToken.split('.')[0];
+
+    const base64 = tokenPayload
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+
+    const payload = JSON.parse(atob(base64));
+
+    const now = Math.floor(Date.now() / 1000);
+
+    // Renovar si vence dentro de los próximos 5 minutos.
+    if (Number.isSafeInteger(payload.exp) && payload.exp > now + 300) {
+      return pendingPDF.registration;
+    }
+  } catch {
+    // Token ilegible: recuperar el registro desde Airtable.
+  }
+}
+
   const response=await fetch('/api/cotizaciones',{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({requestId:pendingPDF.requestId,quote})
@@ -318,6 +339,60 @@ async function registerQuote(s,quoteMarket){
   pendingPDF.registration=data;
   persist();
   return data;
+}
+
+
+async function uploadQuotePDF(doc, registration) {
+  if (
+    !registration?.uploadToken ||
+    !registration?.recordId ||
+    !Number.isSafeInteger(registration.number)
+  ) {
+    throw new Error(
+      'Falta la autorización para guardar el PDF en Google Drive.'
+    );
+  }
+
+  const pdfBlob = doc.output('blob');
+
+  if (pdfBlob.size > 3 * 1024 * 1024) {
+    throw new Error('El PDF supera el tamaño permitido.');
+  }
+
+  const pdfBase64 = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      resolve(String(reader.result).split(',')[1]);
+    };
+
+    reader.onerror = () => {
+      reject(new Error('No se pudo preparar el PDF.'));
+    };
+
+    reader.readAsDataURL(pdfBlob);
+  });
+
+  const response = await fetch('/api/guardar-cotizacion', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      number: registration.number,
+      recordId: registration.recordId,
+      uploadToken: registration.uploadToken,
+      pdfBase64
+    })
+  });
+
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok || !result.ok) {
+    throw new Error(
+      result.error || 'No se pudo archivar el PDF en Google Drive.'
+    );
+  }
+
+  return result;
 }
 
 async function genPDF(){
@@ -569,13 +644,44 @@ async function genPDF(){
   doc.setTextColor(...theme.header); doc.setFontSize(10); doc.setFont('helvetica','bold');
   doc.text(`Nº ${registration.number}`, W-M, 51, {align:'right'});
   doc.setProperties({title:`Cotización Nº${registration.number} · Green Baker Lodge`});
-  const fname=`Cotizacion_GBL_${registration.number}_${(s.quoter||'grupo').replace(/[^a-zA-Z0-9]/g,'_')}.pdf`;
-  await doc.save(fname,{returnPromise:true});
-  pendingPDF=null;
-  try{sessionStorage.removeItem('gbl-pending-pdf');}catch{}
-  const b=$('pdfBtn');b.textContent='PDF generado ✓';b.classList.add('done');
-  setTimeout(()=>{b.textContent='Generar PDF';b.classList.remove('done')},1800);
+  
+  const fname = `Cotizacion_GBL_${registration.number}_${(s.quoter || 'grupo').replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+
+  // Descargar siempre el PDF al computador.
+  await doc.save(fname, { returnPromise: true });
+
+  // Intentar guardar el mismo PDF en Google Drive.
+  try {
+    await uploadQuotePDF(doc, registration);
+
+    // El PDF ya está descargado y respaldado.
+    pendingPDF = null;
+    try {
+      sessionStorage.removeItem('gbl-pending-pdf');
+    } catch {}
+
+    const b = $('pdfBtn');
+    b.textContent = 'PDF generado y respaldado ✓';
+    b.classList.add('done');
+
+    setTimeout(() => {
+      b.textContent = 'Generar PDF';
+      b.classList.remove('done');
+    }, 2500);
+
+  } catch (error) {
+    // Conservar el registro para permitir otro intento.
+    console.error('Respaldo de cotización:', error);
+
+    alert(
+      `La cotización Nº${registration.number} se descargó correctamente, ` +
+      'pero no pudo guardarse en Google Drive.\n\n' +
+      'Puedes volver a generar el PDF con los mismos datos para reintentar ' +
+      'el respaldo sin crear otra cotización.'
+    );
+  }
 }
+
 
 $('market').addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;
