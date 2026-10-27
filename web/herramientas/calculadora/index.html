@@ -468,7 +468,11 @@ ctx=canvas.getContext('2d');ctx.scale(1.5,1.5);
     const top=seasonSpace+(blockHeight-copyHeight)/2;
     ['GREEN','BAKER','LODGE'].forEach((value,index)=>text(value,index===2?lodgeStyle:nameStyle,0,top+index*lineHeight+fontSize*0.9));
     text('PATAGONIA · CHILE',tagStyle,0,top+lineHeight*3+copyGap+tagSize*0.9);
-    ctx.drawImage(img,copyWidth+logoGap,0,fullLogoWidth,fullHeight);
+    ctx.drawImage(
+  img,
+  1, 1, img.width-2, img.height-2,
+  copyWidth+logoGap, 0, fullLogoWidth, fullHeight
+);
     doc.addImage(canvas.toDataURL('image/png'),'PNG',M,4,blockWidth*scale,35);
     brandRendered=true;
   }catch(error){
