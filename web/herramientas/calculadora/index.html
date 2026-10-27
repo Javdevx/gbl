@@ -459,8 +459,8 @@ async function genPDF(){
     const fullHeight=blockHeight+seasonSpace;
     const fullLogoWidth=fullHeight*logoWidth/logoHeight;
     const blockWidth=copyWidth+logoGap+fullLogoWidth;
-    canvas.width=Math.ceil(blockWidth*3);canvas.height=Math.ceil(fullHeight*3);
-    ctx=canvas.getContext('2d');ctx.scale(3,3);
+    canvas.width=Math.ceil(blockWidth*1.5);canvas.height=Math.ceil(fullHeight*1.5);
+ctx=canvas.getContext('2d');ctx.scale(1.5,1.5);
     const text=(value,style,x,baseline)=>{
       setType(style);ctx.fillStyle=style.color;
       [...value].forEach(char=>{ctx.fillText(char,x,baseline);x+=ctx.measureText(char).width+tracking(style);});
@@ -587,7 +587,30 @@ async function genPDF(){
     const imageScale=Math.min(signatureWidth/img.naturalWidth,16/img.naturalHeight);
     const imageWidth=img.naturalWidth*imageScale;
     const imageHeight=img.naturalHeight*imageScale;
-    doc.addImage(img,'PNG',center-imageWidth/2,signatureLineY-1-imageHeight,imageWidth,imageHeight);
+    const maxWidth = 400;
+const ratio = Math.min(1, maxWidth / img.naturalWidth);
+const optimizedCanvas = document.createElement('canvas');
+
+optimizedCanvas.width = Math.round(img.naturalWidth * ratio);
+optimizedCanvas.height = Math.round(img.naturalHeight * ratio);
+
+const optimizedCtx = optimizedCanvas.getContext('2d');
+optimizedCtx.drawImage(
+  img,
+  0,
+  0,
+  optimizedCanvas.width,
+  optimizedCanvas.height
+);
+
+doc.addImage(
+  optimizedCanvas.toDataURL('image/png'),
+  'PNG',
+  center-imageWidth/2,
+  signatureLineY-1-imageHeight,
+  imageWidth,
+  imageHeight
+);
     doc.setDrawColor(...theme.muted);doc.setLineWidth(0.3);
     // Matching line widths and outer margins, with free space above for signatures.
     doc.line(start,signatureLineY,start+signatureWidth,signatureLineY);
@@ -638,9 +661,10 @@ async function genPDF(){
   doc.text('Green Baker Lodge · Puerto Bertrand, Patagonia · Temporada 2026-2027',W/2,290,{align:'center'});
   doc.textWithLink('www.greenbakerlodge.cl',W/2,294,{align:'center',url:'https://www.greenbakerlodge.cl'});
 
-  // Finish rendering before reserving a number in Airtable.
-  doc.output('arraybuffer');
-  const registration=await registerQuote(s,quoteMarket);
+// Finish rendering before reserving a number in Airtable.
+doc.output('arraybuffer');
+
+const registration=await registerQuote(s,quoteMarket);
   doc.setTextColor(...theme.header); doc.setFontSize(10); doc.setFont('helvetica','bold');
   doc.text(`Nº ${registration.number}`, W-M, 51, {align:'right'});
   doc.setProperties({title:`Cotización Nº${registration.number} · Green Baker Lodge`});
