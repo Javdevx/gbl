@@ -42,7 +42,7 @@ module.exports=async function handler(req,res){
   
 const result = record => {
   const internalNumber = record?.fields?.[NUMBER_FIELD];
-  const number = internalNumber + 69;
+  const number = internalNumber + 19;
 
   if (!Number.isSafeInteger(internalNumber) || internalNumber < 1) {
     throw new Error('missing_number');

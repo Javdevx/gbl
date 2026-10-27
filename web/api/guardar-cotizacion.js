@@ -118,7 +118,7 @@ if (
 
     if (
       !Number.isSafeInteger(internalNumber) ||
-      internalNumber + 69 !== number
+      internalNumber + 19 !== number
     ) {
       return res.status(403).json({
         error: 'El número no corresponde al registro de Airtable.'
